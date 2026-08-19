@@ -113,7 +113,7 @@ function Home(){
     <div className="home-widgets"><AgeWidget/><FlipClock/><WeatherWidget/></div>
   </Page>
 }
-function Page({id,kicker,title,children}){return <section className="page" id={id}><div className="page-inner"><div className="kicker">— {kicker}</div><h1>{title}</h1>{children}</div></section>}
+function Page({id,kicker,title,children}){return <section className="page" id={id}><div className="page-inner"><div className="kicker">{kicker}</div><h1>{title}</h1>{children}</div></section>}
 function Pill({children,icon:I}){return <span className="pill">{I&&<I size={11}/>} {children}</span>}
 
 async function lastfm(type,extra=""){
@@ -133,7 +133,7 @@ function Music(){
   const current=data.recent?.find(x=>x["@attr"]?.nowplaying==="true")||data.recent?.[0];
   return <Page id="music" kicker="what i've been listening to" title="music">
     <p className="lead">live listening data from <b>Last.fm</b>, updated automatically.</p>
-    <div className="music-stats"><Stat label="Scrobbles" value={data.info?fmtNum(data.info.playcount):"—"}/><Stat label="Artists" value={data.info?fmtNum(data.info.artist_count):"—"}/><Stat label="Last.fm user" value={LASTFM_USER}/></div>
+    <div className="music-stats"><Stat label="Scrobbles" value={data.info?fmtNum(data.info.playcount):""}/><Stat label="Artists" value={data.info?fmtNum(data.info.artist_count):""}/><Stat label="Last.fm user" value={LASTFM_USER}/></div>
     <div className="music-layout">
       <MusicList title="TOP ARTISTS · 30D" items={data.artists.slice(0,5).map(x=>({name:x.name,meta:x.playcount, img:x.image?.[3]?.["#text"]||x.image?.[2]?.["#text"]||x.image?.[1]?.["#text"]}))}/>
       <div className="now-playing">
@@ -187,7 +187,7 @@ function Games(){
       <GameCard title="Roblox" subtitle="@331953010" href="https://www.roblox.com/users/331953010/profile">{roblox?<img className="roblox" src={roblox} alt="Roblox avatar"/>:<div className="game-loader"><span/></div>}</GameCard>
       <GameCard title="Minecraft" subtitle="iDraven" href="https://namemc.com/profile/iDraven.6"><img className="minecraft" src="https://mc-heads.net/body/iDraven/320" alt="Minecraft character"/></GameCard>
     </div>
-    <div className="steam-card"><div className="steam-head"><div><span className="kicker">STEAM</span><h2>chungusanimals</h2></div><a href="https://steamcommunity.com/id/chungusanimals/" target="_blank" rel="noreferrer">open profile <ExternalLink size={10}/></a></div>{steam&&!steam.error?<><div className="steam-stats"><Stat label="Games owned" value={steam.games||"—"}/><Stat label="Total playtime" value={steam.playtime||"—"}/><Stat label="Recent" value={steam.recent||"—"}/><Stat label="Friends" value={steam.friends||"—"}/><Stat label="Badges" value={steam.badges||"—"}/><Stat label="Profile age" value={steam.age||"—"}/></div></>:<div className="steam-unavailable"><Skeleton/><small>Steam profile data is unavailable right now.</small></div>}</div>
+    <div className="steam-card"><div className="steam-head"><div><span className="kicker">STEAM</span><h2>chungusanimals</h2></div><a href="https://steamcommunity.com/id/chungusanimals/" target="_blank" rel="noreferrer">open profile <ExternalLink size={10}/></a></div>{steam&&!steam.error?<><div className="steam-stats"><Stat label="Games owned" value={steam.games||""}/><Stat label="Total playtime" value={steam.playtime||""}/><Stat label="Recent" value={steam.recent||""}/><Stat label="Friends" value={steam.friends||""}/><Stat label="Badges" value={steam.badges||""}/><Stat label="Profile age" value={steam.age||""}/></div></>:<div className="steam-unavailable"><Skeleton/><small>Steam profile data is unavailable right now.</small></div>}</div>
   </Page>
 }
 function GameCard({title,subtitle,href,children}){return <a className="game-card" href={href} target="_blank" rel="noreferrer"><div className="game-visual">{children}</div><div className="game-info"><strong>{title}</strong><small>{subtitle}</small><ExternalLink size={11}/></div></a>}
@@ -202,14 +202,14 @@ function F1(){
       <Interest icon="⌁" title="Next Grand Prix" value={next?`${next.raceName} · ${next.Circuit?.Location?.locality}, ${next.Circuit?.Location?.country}`:"loading…"}/>
       <Interest icon="🏁" title="F1 Merch" value="Owned: 4"/>
     </div>
-    <div className="f1-points"><div className="section-row"><h3>LIVE POINT TRACK</h3><span>{updated?`updated ${new Date(updated).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"updating…"}</span></div><div className="bar"><span style={{width:`${Math.min(100,(Number(stand?.driver?.points)||0)/500*100)}%`}}/></div><div className="point-row"><span>Max Verstappen</span><b>{stand?.driver?.points||"—"} pts</b></div><div className="point-row"><span>Ferrari</span><b>{stand?.constructor?.points||"—"} pts</b></div></div>
+    <div className="f1-points"><div className="section-row"><h3>LIVE POINT TRACK</h3><span>{updated?`updated ${new Date(updated).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"updating…"}</span></div><div className="bar"><span style={{width:`${Math.min(100,(Number(stand?.driver?.points)||0)/500*100)}%`}}/></div><div className="point-row"><span>Max Verstappen</span><b>{stand?.driver?.points||""} pts</b></div><div className="point-row"><span>Ferrari</span><b>{stand?.constructor?.points||""} pts</b></div></div>
     <div className="next-race">{next?<><div><span className="kicker">NEXT GRAND PRIX</span><strong>{next.raceName}</strong><small>{next.Circuit?.circuitName} · {next.date}</small></div><div className="countdown"><NextCountdown date={next.date+"T"+(next.time||"12:00:00Z")}/></div></>:<Skeleton/>}</div>
   </Page>
 }
 function NextCountdown({date}){const [n,setN]=useState(Date.now());useEffect(()=>{const id=setInterval(()=>setN(Date.now()),1000);return()=>clearInterval(id)},[]);const d=Math.max(0,new Date(date)-n);const h=Math.floor(d/3600000),m=Math.floor(d%3600000/60000),s=Math.floor(d%60000/1000);return <div className="count-num">{Math.floor(h/24)}d {String(h%24).padStart(2,"0")}:{String(m).padStart(2,"0")}:{String(s).padStart(2,"0")}</div>}
 function Interest({icon,title,value}){return <div className="interest"><span>{icon}</span><div><b>{title}</b><small>{value}</small></div></div>}
 function Biolinks(){return <Page id="biolinks" kicker="my links" title="biolinks"><p className="lead">my <b>biolinks</b></p><div className="bio-list">{BIO.map(([n,u,i])=><a className="bio-card" href={u} target="_blank" rel="noreferrer" key={n}><span>{i}</span><div><strong>{n}</strong><small>@drav</small></div><ExternalLink size={12}/></a>)}</div></Page>}
-function Contact(){const [copied,setCopied]=useState(false);const copy=async()=>{await navigator.clipboard?.writeText("@drva");setCopied(true);setTimeout(()=>setCopied(false),1500)};return <Page id="contact" kicker="get in touch" title="contact"><p className="lead">open for collabs, questions, or just a hello — <b>discord</b> fastest, but pick whatever works.</p><div className="contact-card"><div className="contact-person"><div className="simple-avatar">D</div><div><strong>Draven</strong><small>feel free to reach me</small></div></div><div className="contact-buttons"><button onClick={copy}>{copied?<Check size={11}/>:<Copy size={11}/>} @drva</button><a href="https://discord.com/users/715076381293150288" target="_blank" rel="noreferrer">open <ExternalLink size={11}/></a></div></div></Page>}
+function Contact(){const [copied,setCopied]=useState(false);const copy=async()=>{await navigator.clipboard?.writeText("@drva");setCopied(true);setTimeout(()=>setCopied(false),1500)};return <Page id="contact" kicker="get in touch" title="contact"><p className="lead">questions, or just a hello. <b>discord</b> is the fastest way to reach me.</p><div className="contact-card"><div className="contact-person"><div className="simple-avatar">D</div><div><strong>Draven</strong><small>feel free to reach me</small></div></div><div className="contact-buttons"><button onClick={copy}>{copied?<Check size={11}/>:<Copy size={11}/>} @drva</button><a href="https://discord.com/users/715076381293150288" target="_blank" rel="noreferrer">open <ExternalLink size={11}/></a></div></div></Page>}
 
 function CursorFX(){
   const ref=useRef(null);
@@ -225,7 +225,7 @@ function Entry({onEnter}){const [ready,setReady]=useState(false);useEffect(()=>{
 function Views(){
   const [views,setViews]=useState(null);
   useEffect(()=>{fetch("/api/views",{method:"POST"}).then(r=>r.json()).then(x=>setViews(x.views)).catch(()=>{const k="draven-local-views";const v=Number(localStorage.getItem(k)||"0")+1;localStorage.setItem(k,v);setViews(v)})},[]);
-  return <div className="views">◉ {views==null?"—":fmtNum(views)}</div>
+  return <div className="views">◉ {views==null?"":fmtNum(views)}</div>
 }
 function App(){
   const [entered,setEntered]=useState(sessionStorage.getItem("draven-entered")==="1");
