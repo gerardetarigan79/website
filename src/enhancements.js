@@ -74,15 +74,13 @@ function flipDigits(){
 
 function normalizeTimezone(){
   document.querySelectorAll(".clock-meta small").forEach(el=>{
-    if(el.textContent.includes("UTC+7"))el.textContent="UTC+7";
+    if(el.textContent !== "UTC+7") el.textContent="UTC+7";
   });
 }
 
 function lastfmUrl(artist,track){return artist&&track?`https://www.last.fm/music/${encodeURIComponent(artist)}/_/${encodeURIComponent(track)}`:""}
 
 function enrichArtists(){
-  // Last.fm artist artwork is inconsistent for this account. Remove the broken/empty image slots
-  // instead of showing blank circles.
   document.querySelectorAll(".music-layout .music-list:first-child .music-item img,.music-layout .music-list:first-child .music-item .mini-art").forEach(el=>el.remove());
 }
 
