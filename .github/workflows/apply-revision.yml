@@ -1,0 +1,83 @@
+name: Apply website revision
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  revise:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply requested UI fixes
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('src/main.jsx')
+          s = p.read_text()
+
+          # Discord: never render HypeSquad Bravery / BRV.
+          s = s.replace('[64,"HypeSquad Bravery","BRV"],', '')
+          s = s.replace('{badges.map(([_,name,label])=><span title={name} key={name}>{label}</span>)}', '{badges.filter(([_,name])=>name!=="HypeSquad Bravery").map(([_,name,label])=><span title={name} key={name}>{label}</span>)}')
+
+          # Music: remove artist/album/recent artwork entirely from the list cards.
+          s = re.sub(r'\{x\.img\?<img src=\{x\.img\} onError=\{\(e\)=>\{e\.currentTarget\.style\.display="none"\}\}/>:<div className="mini-art"/>\}', '', s)
+
+          # Music: replace the square album-cover stage with a clean CSS CD.
+          s = re.sub(r'<div className="record-stage">.*?</div>\s*<div className="np-bottom">', '<div className="record-stage"><div className="record-disc" aria-label="Current track CD"/></div><div className="np-bottom">', s, count=1, flags=re.S)
+
+          # Music: remove the duplicate LATEST/RECENT plays strip below the main player.
+          start = s.find('    <div className="recent-section">')
+          if start != -1:
+              end = s.find('  </Page>', start)
+              if end != -1:
+                  s = s[:start] + s[end:]
+
+          # F1: use the exact user-provided assets and requested hotlap text.
+          s = s.replace('<div className="f1-logo">F1</div>', '<img className="f1-logo" src="https://upload.wikimedia.org/wikipedia/commons/3/33/F1.svg" alt="Formula 1"/>')
+          s = re.sub(r'<Interest icon="🏎" title="Constructor" value="Scuderia Ferrari HP"/>', '<Interest icon={<img className="interest-image" src="https://di-uploads-pod31.dealerinspire.com/ferrarioffortlauderdale/uploads/2026/03/scuderia-logo-v02.png" alt="Scuderia Ferrari"/>} title="Constructor" value="Scuderia Ferrari HP"/>', s)
+          s = re.sub(r'<Interest icon="✦" title="Driver" value="Max Verstappen"/>', '<Interest icon={<img className="interest-image" src="https://images.seeklogo.com/logo-png/45/2/max-verstappen-logo-png_seeklogo-454438.png" alt="Max Verstappen"/>} title="Driver" value="Max Verstappen · #3"/>', s)
+          s = re.sub(r'<Interest icon={<img className="track-preview" src="https://freesvg.org/img/RaceCircuitMonaco.png" alt="Monaco circuit"/>} title="Monaco Personal Record" value="[^"]*"/>', '<Interest icon={<img className="track-preview" src="https://freesvg.org/img/RaceCircuitMonaco.png" alt="Monaco circuit"/>} title="Monaco Personal Record" value="1:11:345 · SF-25"/>', s)
+          s = s.replace('<Interest icon="🏁" title="F1 Merch" value="Owned: 4"/>', '')
+
+          p.write_text(s)
+          PY
+
+          cat >> src/styles.css <<'CSS'
+
+          /* Revision: interactive music cards and clean CD player */
+          .music-item{transition:transform .24s cubic-bezier(.2,.8,.2,1),background .24s,box-shadow .24s}
+          .music-item:hover{transform:translateY(-6px);background:rgba(255,255,255,.025);box-shadow:0 12px 30px rgba(0,0,0,.28)}
+          .music-list,.now-playing{transition:transform .24s ease}
+          .music-list:hover{transform:translateY(-2px)}
+          .record-stage{height:300px;position:relative;display:grid;place-items:center;perspective:900px}
+          .record-disc{width:250px;height:250px;border-radius:50%;position:relative;display:block;background:radial-gradient(circle at 50% 50%,#15151a 0 7%,#24242b 7.5% 8.5%,#111116 9% 29%,#24242a 29.5% 30%,#0d0d11 30.5% 46%,#24242a 46.5% 47%,#0c0c10 47.5% 100%);box-shadow:0 25px 50px rgba(0,0,0,.65),0 0 45px rgba(106,2,151,.14),inset 0 0 35px rgba(255,255,255,.04);animation:jukeboxSpin 9s linear infinite}
+          .record-disc:before{content:"";position:absolute;inset:12px;border-radius:50%;background:repeating-radial-gradient(circle,#ffffff08 0 1px,transparent 1px 4px);opacity:.45;pointer-events:none}
+          .record-disc:after{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px;border-radius:50%;background:#08080b;border:2px solid #303038;box-shadow:0 0 0 3px #17171c,0 0 12px #000;transform:translateZ(1px)}
+          @keyframes jukeboxSpin{to{transform:rotate(360deg)}}
+          .np-bottom{position:relative;z-index:3;margin-top:2px}
+          .np-bottom>div{min-width:0;text-align:center;flex:1}
+          .np-bottom strong{white-space:normal;overflow:visible;text-overflow:clip;display:block}
+          .np-bottom small{white-space:normal;overflow:visible;text-overflow:clip;display:block}
+          .f1-logo{position:absolute;right:38px;top:50%;transform:translateY(-50%);width:125px;height:auto;opacity:.55;filter:brightness(1.35) grayscale(1)}
+          .interest-image{width:38px;height:38px;object-fit:contain;display:block}
+          .track-preview{width:48px;height:42px;object-fit:contain;display:block;filter:brightness(.9)}
+          .f1-interest-grid .interest[data-hotlap="1"]{grid-column:1 / -1}
+          @media (hover:hover){.music-item:hover img,.music-item:hover .mini-art{transform:scale(1.06)}.recent-card:hover{transform:translateY(-6px)}.music-item img,.mini-art,.recent-card{transition:transform .24s cubic-bezier(.2,.8,.2,1)}}
+          @media (max-width:700px){body{cursor:auto}.cursor-dot,.star-trail{display:none}.f1-logo{right:18px;width:90px}.record-disc{width:210px;height:210px}}
+          CSS
+
+          # Remove this one-shot workflow after applying the revision.
+          rm -f .github/workflows/apply-revision.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.jsx src/styles.css .github/workflows/apply-revision.yml
+          git commit -m "Refine Discord, music and F1 UI" || exit 0
+          git push
