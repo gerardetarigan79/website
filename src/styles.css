@@ -38,3 +38,24 @@ body:after{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:-1;b
 .recent-section{margin-top:24px}.recent-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.recent-head h3{font-size:8px;color:#666;font-weight:400;margin:0;letter-spacing:.08em}.recent-head span{font-size:7px;color:#444}.recent-scroller{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:2px 2px 10px 0;scrollbar-width:thin;scrollbar-color:#2b2932 transparent}.recent-scroller::-webkit-scrollbar{height:4px}.recent-scroller::-webkit-scrollbar-track{background:transparent}.recent-scroller::-webkit-scrollbar-thumb{background:#292730;border-radius:9px}.recent-card{flex:0 0 180px;min-height:58px;display:flex;align-items:center;gap:9px;padding:8px;border:1px solid #25252c;border-radius:6px;background:#101014;position:relative;scroll-snap-align:start;transition:transform .2s,border-color .2s,background .2s}.recent-card:hover{transform:translateY(-2px);border-color:#443653;background:#141319}.recent-card img{width:42px;height:42px;border-radius:4px;object-fit:cover;background:#1a1a20;flex:none}.recent-card strong{display:block;color:#c6c6cd;font-size:8px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px}.recent-card small{display:block;color:#555;font-size:7px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px}.now-dot{position:absolute;right:7px;top:7px;width:5px;height:5px;border-radius:50%;background:#6fd8ad;box-shadow:0 0 8px #6fd8ad}.skeleton-recent{background:linear-gradient(90deg,#101014 20%,#1b1b21 45%,#101014 70%);background-size:200% 100%;animation:shimmer 1.2s infinite}.game-loader{width:54px;height:54px;border:1px solid #2b2832;border-top-color:#8c49b2;border-radius:50%;animation:spin .9s linear infinite}.steam-unavailable{min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}.steam-unavailable small{font-size:7px;color:#4e4e54}.game-card img{opacity:0;animation:mediaIn .5s .1s ease forwards}.game-card .game-loader{animation:spin .9s linear infinite}@keyframes mediaIn{to{opacity:1}}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @media(max-width:850px){.music-layout{grid-template-columns:1fr}.music-list{display:block}.now-playing{max-width:520px;margin:auto;width:100%}.recent-card{flex-basis:175px}}
+
+/* Revision: interactive music cards and clean CD player */
+.music-item{transition:transform .24s cubic-bezier(.2,.8,.2,1),background .24s,box-shadow .24s}
+.music-item:hover{transform:translateY(-6px);background:rgba(255,255,255,.025);box-shadow:0 12px 30px rgba(0,0,0,.28)}
+.music-list,.now-playing{transition:transform .24s ease}
+.music-list:hover{transform:translateY(-2px)}
+.record-stage{height:300px;position:relative;display:grid;place-items:center;perspective:900px}
+.record-disc{width:250px;height:250px;border-radius:50%;position:relative;display:block;background:radial-gradient(circle at 50% 50%,#15151a 0 7%,#24242b 7.5% 8.5%,#111116 9% 29%,#24242a 29.5% 30%,#0d0d11 30.5% 46%,#24242a 46.5% 47%,#0c0c10 47.5% 100%);box-shadow:0 25px 50px rgba(0,0,0,.65),0 0 45px rgba(106,2,151,.14),inset 0 0 35px rgba(255,255,255,.04);animation:jukeboxSpin 9s linear infinite}
+.record-disc:before{content:"";position:absolute;inset:12px;border-radius:50%;background:repeating-radial-gradient(circle,#ffffff08 0 1px,transparent 1px 4px);opacity:.45;pointer-events:none}
+.record-disc:after{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px;border-radius:50%;background:#08080b;border:2px solid #303038;box-shadow:0 0 0 3px #17171c,0 0 12px #000;transform:translateZ(1px)}
+@keyframes jukeboxSpin{to{transform:rotate(360deg)}}
+.np-bottom{position:relative;z-index:3;margin-top:2px}
+.np-bottom>div{min-width:0;text-align:center;flex:1}
+.np-bottom strong{white-space:normal;overflow:visible;text-overflow:clip;display:block}
+.np-bottom small{white-space:normal;overflow:visible;text-overflow:clip;display:block}
+.f1-logo{position:absolute;right:38px;top:50%;transform:translateY(-50%);width:125px;height:auto;opacity:.55;filter:brightness(1.35) grayscale(1)}
+.interest-image{width:38px;height:38px;object-fit:contain;display:block}
+.track-preview{width:48px;height:42px;object-fit:contain;display:block;filter:brightness(.9)}
+.f1-interest-grid .interest[data-hotlap="1"]{grid-column:1 / -1}
+@media (hover:hover){.music-item:hover img,.music-item:hover .mini-art{transform:scale(1.06)}.recent-card:hover{transform:translateY(-6px)}.music-item img,.mini-art,.recent-card{transition:transform .24s cubic-bezier(.2,.8,.2,1)}}
+@media (max-width:700px){body{cursor:auto}.cursor-dot,.star-trail{display:none}.f1-logo{right:18px;width:90px}.record-disc{width:210px;height:210px}}

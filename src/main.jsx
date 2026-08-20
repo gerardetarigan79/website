@@ -89,7 +89,7 @@ function DiscordCard(){
   const flags=user?.public_flags||0;
   const badgeDefs=[
     [1,"Discord Staff","STAFF"],[2,"Partner","PARTNER"],[4,"HypeSquad Events","HYPE"],[8,"Bug Hunter","BUG"],
-    [64,"HypeSquad Bravery","BRV"],[128,"HypeSquad Brilliance","BRI"],[256,"HypeSquad Balance","BAL"],
+    [128,"HypeSquad Brilliance","BRI"],[256,"HypeSquad Balance","BAL"],
     [512,"Early Supporter","EARLY"],[16384,"Bug Hunter Level 2","BUG2"],[131072,"Verified Bot Developer","DEV"],
     [262144,"Certified Moderator","MOD"],[4194304,"Active Developer","ACTIVE"]
   ];
@@ -100,7 +100,7 @@ function DiscordCard(){
     <div className="discord-info">
       <div className="name-row"><strong>{user?.global_name||user?.username||"Draven"}</strong><span className="discord-tag">@{user?.username||"drva"}</span></div>
       <span className="presence-text">{loading?"loading presence…":p?.discord_status||"offline"}</span>
-      {(badges.length>0||premium)&&<div className="badges">{badges.map(([_,name,label])=><span title={name} key={name}>{label}</span>)}{premium&&<span title="Discord Nitro">NITRO</span>}</div>}
+      {(badges.length>0||premium)&&<div className="badges">{badges.filter(([_,name])=>name!=="HypeSquad Bravery").map(([_,name,label])=><span title={name} key={name}>{label}</span>)}{premium&&<span title="Discord Nitro">NITRO</span>}</div>}
       {p?.activities?.filter(a=>a.name!=="Spotify").slice(0,1).map(a=><div className="activity" key={a.id}><span>Playing</span> {a.name}{a.details?` · ${a.details}`:""}</div>)}
     </div>
     <a className="small-action" href={`https://discord.com/users/${DISCORD_ID}`} target="_blank" rel="noreferrer">discord <ExternalLink size={10}/></a>
@@ -139,32 +139,15 @@ function Music(){
       <div className="now-playing">
         <div className="music-heading">✦ RECENT PLAYS ✦</div>
         {loading?<Skeleton/>:<>
-          <div className="record-stage">
-            <div className="record-disc"><Disc3 size={150}/></div>
-            <div className="cover"><img src={current?.image?.[3]?.["#text"]||""}/><div className="cover-shade"/></div>
-          </div>
-          <div className="np-bottom"><div><strong>{current?.name||"nothing playing"}</strong><small>{current?.artist?.["#text"]||"Last.fm"} · {current?.["@attr"]?.nowplaying==="true"?"now":"recent"}</small></div><button onClick={()=>setPlaying(x=>!x)}>{playing?<Pause size={14}/>:<Play size={14}/>}</button></div>
+          <div className="record-stage"><div className="record-disc" aria-label="Current track CD"/></div><div className="np-bottom"><div><strong>{current?.name||"nothing playing"}</strong><small>{current?.artist?.["#text"]||"Last.fm"} · {current?.["@attr"]?.nowplaying==="true"?"now":"recent"}</small></div><button onClick={()=>setPlaying(x=>!x)}>{playing?<Pause size={14}/>:<Play size={14}/>}</button></div>
         </>}
       </div>
       <MusicList title="TOP ALBUMS · 30D" items={data.albums.slice(0,6).map(x=>({name:x.name,meta:x.artist?.name,img:x.image?.[2]?.["#text"]}))}/>
     </div>
-    <div className="recent-section">
-      <div className="recent-head"><h3>RECENT PLAYS</h3><span>scroll sideways →</span></div>
-      <div className="recent-scroller">
-        {loading ? [1,2,3,4,5].map(i=><div className="recent-card skeleton-recent" key={i}/>) : data.recent.slice(0,12).map((x,i)=>{
-          const img=x.image?.[3]?.["#text"]||x.image?.[2]?.["#text"]||x.image?.[1]?.["#text"];
-          return <div className="recent-card" key={`${x.name}-${i}`}>
-            <img src={img||""} alt=""/>
-            <div><strong>{x.name}</strong><small>{x.artist?.["#text"]||"Unknown artist"}</small></div>
-            {x["@attr"]?.nowplaying==="true"&&<span className="now-dot"/>}
-          </div>
-        })}
-      </div>
-    </div>
   </Page>
 }
 function Stat({label,value}){return <div className="stat"><span>{label}</span><b>{value}</b></div>}
-function MusicList({title,items}){return <div className="music-list"><h3>{title}</h3>{items.map((x,i)=><div className="music-item" key={i}><span className="rank">{i+1}</span>{x.img?<img src={x.img} onError={(e)=>{e.currentTarget.style.display="none"}}/>:<div className="mini-art"/>}<div><strong>{x.name}</strong><small>{x.meta}</small></div></div>)}</div>}
+function MusicList({title,items}){return <div className="music-list"><h3>{title}</h3>{items.map((x,i)=><div className="music-item" key={i}><span className="rank">{i+1}</span><div><strong>{x.name}</strong><small>{x.meta}</small></div></div>)}</div>}
 function Skeleton(){return <div className="skeleton-card"><div/><div/><div/></div>}
 
 const skillGroups={
@@ -196,11 +179,11 @@ function F1(){
   const load=()=>fetch("/api/f1").then(r=>r.json()).then(x=>{setStand({driver:x.driver,constructor:x.constructor});setNext(x.next);setUpdated(x.fetchedAt)}).catch(()=>{});
   useEffect(()=>{load();const id=setInterval(load,60000);return()=>clearInterval(id)},[]);
   return <Page id="f1" kicker="my formula 1 widget" title="f1"><p className="lead">track my Formula 1 interests.</p>
-    <div className="f1-hero"><div><span className="f1-mark">F1</span><h2>F1 Dashboard</h2><p>live points, next Grand Prix, and my F1 interests.</p></div><div className="f1-logo">F1</div></div>
+    <div className="f1-hero"><div><span className="f1-mark">F1</span><h2>F1 Dashboard</h2><p>live points, next Grand Prix, and my F1 interests.</p></div><img className="f1-logo" src="https://upload.wikimedia.org/wikipedia/commons/3/33/F1.svg" alt="Formula 1"/></div>
     <div className="f1-interest-grid">
-      <Interest icon="🏎" title="Constructor" value="Scuderia Ferrari HP"/><Interest icon="✦" title="Driver" value="Max Verstappen"/>
+      <Interest icon={<img className="interest-image" src="https://di-uploads-pod31.dealerinspire.com/ferrarioffortlauderdale/uploads/2026/03/scuderia-logo-v02.png" alt="Scuderia Ferrari"/>} title="Constructor" value="Scuderia Ferrari HP"/><Interest icon={<img className="interest-image" src="https://images.seeklogo.com/logo-png/45/2/max-verstappen-logo-png_seeklogo-454438.png" alt="Max Verstappen"/>} title="Driver" value="Max Verstappen · #3"/>
       <Interest icon="⌁" title="Next Grand Prix" value={next?`${next.raceName} · ${next.Circuit?.Location?.locality}, ${next.Circuit?.Location?.country}`:"loading…"}/>
-      <Interest icon="🏁" title="F1 Merch" value="Owned: 4"/>
+      
     </div>
     <div className="f1-points"><div className="section-row"><h3>LIVE POINT TRACK</h3><span>{updated?`updated ${new Date(updated).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"updating…"}</span></div><div className="bar"><span style={{width:`${Math.min(100,(Number(stand?.driver?.points)||0)/500*100)}%`}}/></div><div className="point-row"><span>Max Verstappen</span><b>{stand?.driver?.points||""} pts</b></div><div className="point-row"><span>Ferrari</span><b>{stand?.constructor?.points||""} pts</b></div></div>
     <div className="next-race">{next?<><div><span className="kicker">NEXT GRAND PRIX</span><strong>{next.raceName}</strong><small>{next.Circuit?.circuitName} · {next.date}</small></div><div className="countdown"><NextCountdown date={next.date+"T"+(next.time||"12:00:00Z")}/></div></>:<Skeleton/>}</div>
