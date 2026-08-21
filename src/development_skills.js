@@ -17,7 +17,7 @@ function addDevelopmentSkills(){
     if([...wrap.querySelectorAll(".pill")].some(p => p.textContent.trim() === name)) return;
     const pill = document.createElement("span");
     pill.className = "pill";
-    pill.innerHTML = `<span aria-hidden="true" style="font-size:11px;line-height:1">${icon}</span> ${name}`;
+    pill.innerHTML = `<span aria-hidden="true" style="font-size:11px;line-height:1;color:#999999">${icon}</span> ${name}`;
     wrap.appendChild(pill);
   });
 }
