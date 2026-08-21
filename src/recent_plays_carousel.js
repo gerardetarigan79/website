@@ -51,6 +51,16 @@ function addRecentPlaysStyles(){
   document.head.appendChild(s);
 }
 
+function addRecentPlaysWheelScroll(row){
+  if(!row||row.dataset.wheelScrollBound==="1")return;
+  row.dataset.wheelScrollBound="1";
+  row.addEventListener("wheel",e=>{
+    if(Math.abs(e.deltaY)<Math.abs(e.deltaX))return;
+    e.preventDefault();
+    row.scrollLeft+=e.deltaY;
+  },{passive:false});
+}
+
 async function loadRecentPlaysCarousel(){
   const music=document.getElementById("music");
   if(!music)return;
@@ -72,6 +82,7 @@ async function loadRecentPlaysCarousel(){
     const visible=tracks.slice(0,20);
     section.innerHTML=`<div class="recent-carousel-heading"><h3>✦ RECENT PLAYS · 20</h3><span class="recent-carousel-hint">scroll sideways →</span></div><div class="recent-track-row" tabindex="0" aria-label="20 recent plays"></div>`;
     const row=section.querySelector(".recent-track-row");
+    addRecentPlaysWheelScroll(row);
     visible.forEach((track,index)=>{
       const name=track?.name||"Unknown track";
       const artist=track?.artist?.["#text"]||track?.artist?.name||"Unknown artist";
