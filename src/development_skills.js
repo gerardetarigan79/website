@@ -1,5 +1,6 @@
+const VITE_ICON = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#999999" d="M2.4 4.5h19.2L12 19.5z"/><path fill="#1b1b20" d="M12 7.1 7.7 14h2.8l1.5-2.4 1.5 2.4h2.8z"/></svg>`)}`;
 const DEVELOPMENT_SKILLS = [
-  ["Vite", "⚡"],
+  ["Vite", VITE_ICON],
   ["HTML", "<>"],
   ["TypeScript", "TS"]
 ];
@@ -17,7 +18,17 @@ function addDevelopmentSkills(){
     if([...wrap.querySelectorAll(".pill")].some(p => p.textContent.trim() === name)) return;
     const pill = document.createElement("span");
     pill.className = "pill";
-    pill.innerHTML = `<span aria-hidden="true" style="font-size:11px;line-height:1;color:#999999">${icon}</span> ${name}`;
+    if(name === "Vite"){
+      const img = document.createElement("img");
+      img.src = icon;
+      img.alt = "Vite";
+      img.width = 11;
+      img.height = 11;
+      img.style.cssText = "display:block;width:11px;height:11px;object-fit:contain;margin-right:4px";
+      pill.append(img, document.createTextNode(name));
+    } else {
+      pill.innerHTML = `<span aria-hidden="true" style="font-size:11px;line-height:1;color:#999999">${icon}</span> ${name}`;
+    }
     wrap.appendChild(pill);
   });
 }
