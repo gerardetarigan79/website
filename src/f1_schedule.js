@@ -43,11 +43,36 @@ function renderF1Schedule(){
     tick();setInterval(tick,1000);
   });
 }
+async function updateLiveF1Points(){
+  const box=document.querySelector(".f1-points");
+  if(!box||box.dataset.livePointsBound==="1")return;
+  box.dataset.livePointsBound="1";
+  const rows=[...box.querySelectorAll(".point-row")];
+  const update=async()=>{
+    try{
+      const [driverRes,constructorRes]=await Promise.all([
+        fetch("https://api.jolpi.ca/ergast/f1/current/driverstandings/max_verstappen.json",{cache:"no-store"}),
+        fetch("https://api.jolpi.ca/ergast/f1/current/constructorstandings/ferrari.json",{cache:"no-store"})
+      ]);
+      if(!driverRes.ok||!constructorRes.ok)throw new Error("F1 standings request failed");
+      const [driverData,constructorData]=await Promise.all([driverRes.json(),constructorRes.json()]);
+      const driver=driverData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings?.[0];
+      const constructor=constructorData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings?.[0];
+      if(driver?.points&&rows[0])rows[0].querySelector("b")?.replaceChildren(document.createTextNode(`${driver.points} pts`));
+      if(constructor?.points&&rows[1])rows[1].querySelector("b")?.replaceChildren(document.createTextNode(`${constructor.points} pts`));
+      const stamp=box.querySelector(".section-row span");
+      if(stamp)stamp.textContent=`updated ${new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"Asia/Jakarta"})} WIB`;
+    }catch{}
+  };
+  await update();
+  setInterval(update,5*60*1000);
+}
 function bootF1Schedule(){
   const root=document.getElementById("root")||document.body;
-  const observer=new MutationObserver(()=>renderF1Schedule());
+  const observer=new MutationObserver(()=>{renderF1Schedule();updateLiveF1Points()});
   observer.observe(root,{childList:true,subtree:true});
   renderF1Schedule();
+  updateLiveF1Points();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootF1Schedule);else bootF1Schedule();
 const style=document.createElement("style");
