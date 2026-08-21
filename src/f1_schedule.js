@@ -105,16 +105,44 @@ async function updateLiveF1Points(){
   }catch{}};
   await update();setInterval(update,5*60*1000);
 }
+async function updateF1SeasonCompletion(){
+  const bar=document.querySelector(".f1-points .bar");
+  if(!bar||bar.dataset.seasonCompletionBound==="1")return;
+  bar.dataset.seasonCompletionBound="1";
+  const update=async()=>{
+    try{
+      const response=await fetch(F1_SCHEDULE_API,{cache:"no-store",headers:{Accept:"application/json"}});
+      if(!response.ok)throw new Error("F1 calendar request failed");
+      const data=await response.json();
+      const races=data?.MRData?.RaceTable?.Races||[];
+      if(!races.length)throw new Error("No F1 races found");
+      const now=Date.now();
+      const total=races.length;
+      const completed=races.filter(r=>{
+        const t=parseSessionDate({date:r.date,time:r.time||"00:00:00Z"});
+        return Number.isFinite(t)&&t<=now;
+      }).length;
+      const percentage=Math.max(0,Math.min(100,(completed/total)*100));
+      const fill=bar.querySelector(":scope > span:first-child");
+      if(fill)fill.style.width=`${percentage.toFixed(1)}%`;
+      bar.dataset.seasonCompletion=`${percentage.toFixed(1)}`;
+    }catch{}
+  };
+  await update();
+  setInterval(update,15*60*1000);
+}
 let scheduleRenderTimer=null;
 function bootF1Schedule(){
   const root=document.getElementById("root")||document.body;
   const observer=new MutationObserver(()=>{
     updateLiveF1Points();
+    updateF1SeasonCompletion();
     if(document.querySelector(".next-race")&&!document.querySelector(".next-race .f1-session-list")){clearTimeout(scheduleRenderTimer);scheduleRenderTimer=setTimeout(renderF1Schedule,50)}
   });
   observer.observe(root,{childList:true,subtree:true});
   renderF1Schedule();
   updateLiveF1Points();
+  updateF1SeasonCompletion();
   setInterval(()=>{f1ScheduleCache=null;renderF1Schedule()},15*60*1000);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootF1Schedule);else bootF1Schedule();
