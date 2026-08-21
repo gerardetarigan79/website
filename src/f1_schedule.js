@@ -1,4 +1,4 @@
-const F1_SCHEDULE_API="https://api.jolpi.ca/f1/alpha/schedules/2026/";
+const F1_SCHEDULE_API="https://api.jolpi.ca/f1/2026.json";
 const F1_SESSION_LABELS={FP1:"Practice 1",FP2:"Practice 2",FP3:"Practice 3",SQ:"Sprint Qualifying",SR:"Sprint Race",Q:"Qualifying",R:"Grand Prix"};
 const F1_SESSION_ORDER={FP1:1,SQ:2,SR:3,FP2:4,FP3:5,Q:6,R:7};
 const FALLBACK_DUTCH_SCHEDULE=[
@@ -15,103 +15,74 @@ function formatCountdown(ms){
 }
 function sessionTimestamp(iso){
   const d=new Date(iso);
-  if(Number.isNaN(d.getTime()))return {local:"",wib:""};
-  const local=new Intl.DateTimeFormat("en-GB",{weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Jakarta",hour12:false}).format(d);
-  return {local:`${local} WIB`,wib:""};
+  if(Number.isNaN(d.getTime()))return "";
+  return `${new Intl.DateTimeFormat("en-GB",{weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Jakarta",hour12:false}).format(d)} WIB`;
 }
-function sessionCode(session){
-  const raw=String(session?.code||session?.type||session?.session_type||"").toUpperCase();
-  if(F1_SESSION_LABELS[raw])return raw;
-  const title=String(session?.title||session?.name||"").toLowerCase();
-  if(title.includes("sprint qualifying")||title.includes("sprint shootout"))return "SQ";
-  if(title.includes("sprint race")||title==="sprint")return "SR";
-  if(title.includes("qualifying"))return "Q";
-  if(title.includes("practice 1")||title.includes("first practice"))return "FP1";
-  if(title.includes("practice 2")||title.includes("second practice"))return "FP2";
-  if(title.includes("practice 3")||title.includes("third practice"))return "FP3";
-  if(title==="race"||title.includes("grand prix"))return "R";
+function parseSessionDate(value){
+  if(!value)return null;
+  if(typeof value==="string")return new Date(value).getTime();
+  if(typeof value!=="object")return null;
+  const date=value.date||value.Date;
+  const time=value.time||value.Time||"00:00:00Z";
+  if(date)return new Date(`${date}T${time.replace(/Z$/i,"")}Z`).getTime();
   return null;
 }
-function collectSessionObjects(value,out=[]){
-  if(!value||typeof value!=="object")return out;
-  if(Array.isArray(value)){value.forEach(v=>collectSessionObjects(v,out));return out}
-  const code=sessionCode(value);
-  const timestamp=value.timestamp||value.start_time||value.startTime||value.datetime||value.date_time||value.time;
-  if(code&&timestamp)out.push({code,iso:timestamp});
-  Object.values(value).forEach(v=>collectSessionObjects(v,out));
-  return out;
+function buildRaceRows(race){
+  const candidates=[];
+  const add=(code,value)=>{const t=parseSessionDate(value);if(Number.isFinite(t))candidates.push({key:code.toLowerCase(),name:F1_SESSION_LABELS[code],iso:new Date(t).toISOString()})};
+  add("FP1",race.FirstPractice);
+  add("SQ",race.SprintQualifying||race.SprintShootout);
+  add("SR",race.Sprint);
+  add("FP2",race.SecondPractice);
+  add("FP3",race.ThirdPractice);
+  add("Q",race.Qualifying);
+  if(race.date)add("R",{date:race.date,time:race.time||"00:00:00Z"});
+  return candidates.sort((a,b)=>(F1_SESSION_ORDER[a.name===F1_SESSION_LABELS.FP1?"FP1":a.name===F1_SESSION_LABELS.SQ?"SQ":a.name===F1_SESSION_LABELS.SR?"SR":a.name===F1_SESSION_LABELS.FP2?"FP2":a.name===F1_SESSION_LABELS.FP3?"FP3":a.name===F1_SESSION_LABELS.Q?"Q":"R"]||99)-(F1_SESSION_ORDER[b.name===F1_SESSION_LABELS.FP1?"FP1":b.name===F1_SESSION_LABELS.SQ?"SQ":b.name===F1_SESSION_LABELS.SR?"SR":b.name===F1_SESSION_LABELS.FP2?"FP2":b.name===F1_SESSION_LABELS.FP3?"FP3":b.name===F1_SESSION_LABELS.Q?"Q":"R"]||99));
 }
-function collectScheduleEntries(value,out=[]){
-  if(!value||typeof value!=="object")return out;
-  if(Array.isArray(value)){value.forEach(v=>collectScheduleEntries(v,out));return out}
-  const hasSessions=Array.isArray(value.sessions);
-  const round=value.round||value.round_number||value.roundNumber;
-  const circuit=value.circuit;
-  if(hasSessions&&(round||circuit))out.push(value);
-  Object.values(value).forEach(v=>collectScheduleEntries(v,out));
-  return out;
-}
-function scheduleName(entry){
-  const r=entry?.round||{};
-  return entry?.raceName||entry?.name||entry?.title||r?.raceName||r?.name||"Grand Prix";
-}
-function scheduleLocation(entry){
-  const c=entry?.circuit||entry?.Circuit||{};
-  return c?.name||c?.circuitName||c?.location?.locality||c?.Location?.locality||"";
-}
-function buildRows(entry){
-  const sessions=collectSessionObjects(entry?.sessions||entry);
-  const seen=new Set();
-  return sessions.filter(s=>{const t=new Date(s.iso).getTime();if(!Number.isFinite(t)||seen.has(s.code))return false;seen.add(s.code);return true})
-    .sort((a,b)=>(F1_SESSION_ORDER[a.code]||99)-(F1_SESSION_ORDER[b.code]||99))
-    .map(s=>({key:s.code.toLowerCase(),name:F1_SESSION_LABELS[s.code]||s.code,iso:s.iso}));
-}
-function fallbackRows(){return FALLBACK_DUTCH_SCHEDULE.map(x=>({...x}))}
+function raceTitle(race){return race?.raceName||race?.name||"Grand Prix"}
+function raceLocation(race){return race?.Circuit?.Location?.locality&&race?.Circuit?.Location?.country?`${race.Circuit.Location.locality}, ${race.Circuit.Location.country}`:race?.Circuit?.circuitName||""}
 let f1ScheduleCache=null;
 let f1SchedulePromise=null;
 async function loadF1Schedule(){
   if(f1ScheduleCache)return f1ScheduleCache;
   if(f1SchedulePromise)return f1SchedulePromise;
   f1SchedulePromise=fetch(F1_SCHEDULE_API,{cache:"no-store",headers:{Accept:"application/json"}}).then(r=>{if(!r.ok)throw new Error("F1 schedule request failed");return r.json()}).then(data=>{
-    const entries=collectScheduleEntries(data);
-    const now=Date.now();
-    const candidates=entries.map(entry=>({entry,rows:buildRows(entry)})).filter(x=>x.rows.some(r=>new Date(r.iso).getTime()>now-12*60*60*1000));
-    candidates.sort((a,b)=>{
-      const ta=Math.min(...a.rows.map(r=>new Date(r.iso).getTime()).filter(Number.isFinite));
-      const tb=Math.min(...b.rows.map(r=>new Date(r.iso).getTime()).filter(Number.isFinite));
-      return ta-tb;
-    });
+    const races=data?.MRData?.RaceTable?.Races||[];
+    const now=Date.now()-12*60*60*1000;
+    const candidates=races.map(race=>({race,rows:buildRaceRows(race)})).filter(x=>x.rows.some(r=>new Date(r.iso).getTime()>now));
+    candidates.sort((a,b)=>new Date(a.race.date||a.rows[0]?.iso).getTime()-new Date(b.race.date||b.rows[0]?.iso).getTime());
     if(!candidates.length)throw new Error("No upcoming F1 schedule found");
     const selected=candidates[0];
-    f1ScheduleCache={title:scheduleName(selected.entry),location:scheduleLocation(selected.entry),rows:selected.rows};
+    f1ScheduleCache={title:raceTitle(selected.race),location:raceLocation(selected.race),rows:selected.rows};
     return f1ScheduleCache;
   }).catch(()=>null).finally(()=>{f1SchedulePromise=null});
   return f1SchedulePromise;
 }
 function renderScheduleData(data){
   const box=document.querySelector(".next-race");
-  if(!box||!data)return;
-  const oldTitle=box.querySelector("strong")?.textContent?.trim();
-  const title=data.title&&data.title!=="Grand Prix"?data.title:(oldTitle||"Next Grand Prix");
-  const location=data.location||box.querySelector("small")?.textContent?.trim()||"";
+  if(!box||!data?.rows?.length)return;
+  const title=data.title||"Next Grand Prix";
+  const location=data.location||"";
   box.classList.add("f1-schedule-box");
   box.innerHTML=`<div class="f1-schedule-head"><div><span class="kicker">NEXT GRAND PRIX</span><strong>${title}</strong><small>${location}</small></div></div><div class="f1-session-list"></div>`;
   const list=box.querySelector(".f1-session-list");
   data.rows.forEach(row=>{
     const el=document.createElement("div");el.className="f1-session";
-    const ts=sessionTimestamp(row.iso);
-    el.innerHTML=`<div class="f1-session-info"><b>${row.name}</b><small>${ts.local}</small></div><div class="f1-session-countdown"></div>`;
+    el.innerHTML=`<div class="f1-session-info"><b>${row.name}</b><small>${sessionTimestamp(row.iso)}</small></div><div class="f1-session-countdown"></div>`;
     list.appendChild(el);
     const count=el.querySelector(".f1-session-countdown"),time=new Date(row.iso).getTime();
     const tick=()=>{const left=time-Date.now();count.textContent=formatCountdown(left);el.classList.toggle("is-done",left<=0)};
     tick();setInterval(tick,1000);
   });
 }
+function renderFallback(){
+  const box=document.querySelector(".next-race");
+  if(box)renderScheduleData({title:"Dutch Grand Prix",location:"Zandvoort, Netherlands",rows:FALLBACK_DUTCH_SCHEDULE});
+}
 async function renderF1Schedule(){
   const data=await loadF1Schedule();
   if(data){renderScheduleData(data);return}
-  const existing=document.querySelector(".next-race");
-  if(existing)renderScheduleData({title:existing.querySelector("strong")?.textContent||"Dutch Grand Prix",location:existing.querySelector("small")?.textContent||"Zandvoort, Netherlands",rows:fallbackRows()});
+  renderFallback();
 }
 async function updateLiveF1Points(){
   const box=document.querySelector(".f1-points");
@@ -134,10 +105,16 @@ async function updateLiveF1Points(){
   }catch{}};
   await update();setInterval(update,5*60*1000);
 }
+let scheduleRenderTimer=null;
 function bootF1Schedule(){
   const root=document.getElementById("root")||document.body;
-  const observer=new MutationObserver(()=>{updateLiveF1Points()});observer.observe(root,{childList:true,subtree:true});
-  renderF1Schedule();updateLiveF1Points();
+  const observer=new MutationObserver(()=>{
+    updateLiveF1Points();
+    if(document.querySelector(".next-race")&&!document.querySelector(".next-race .f1-session-list")){clearTimeout(scheduleRenderTimer);scheduleRenderTimer=setTimeout(renderF1Schedule,50)}
+  });
+  observer.observe(root,{childList:true,subtree:true});
+  renderF1Schedule();
+  updateLiveF1Points();
   setInterval(()=>{f1ScheduleCache=null;renderF1Schedule()},15*60*1000);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootF1Schedule);else bootF1Schedule();
