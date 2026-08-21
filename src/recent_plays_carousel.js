@@ -24,7 +24,13 @@ function addRecentPlaysStyles(){
     #${RECENT_PLAYS_ID} .recent-carousel-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
     #${RECENT_PLAYS_ID} .recent-carousel-heading h3{margin:0;font-size:11px;letter-spacing:.14em;font-weight:700;color:#aaa}
     #${RECENT_PLAYS_ID} .recent-carousel-hint{font-size:10px;color:#666;white-space:nowrap}
-    #${RECENT_PLAYS_ID} .recent-track-row{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:4px 2px 14px;scroll-snap-type:x proximity;scroll-behavior:smooth;cursor:grab;overscroll-behavior-x:contain;scrollbar-width:thin}
+    #${RECENT_PLAYS_ID} .recent-track-row{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:4px 2px 12px;scroll-snap-type:x proximity;scroll-behavior:smooth;cursor:grab;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent}
+    #${RECENT_PLAYS_ID} .recent-track-row::-webkit-scrollbar{height:6px}
+    #${RECENT_PLAYS_ID} .recent-track-row::-webkit-scrollbar-track{background:transparent;border-radius:999px}
+    #${RECENT_PLAYS_ID} .recent-track-row::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:999px;border:1px solid transparent;background-clip:padding-box}
+    #${RECENT_PLAYS_ID} .recent-track-row:hover::-webkit-scrollbar-thumb{background:rgba(255,255,255,.34);background-clip:padding-box}
+    #${RECENT_PLAYS_ID} .recent-track-row::-webkit-scrollbar-thumb:active{background:rgba(255,255,255,.48);background-clip:padding-box}
+    #${RECENT_PLAYS_ID} .recent-track-row::-webkit-scrollbar-button{display:none;width:0;height:0}
     #${RECENT_PLAYS_ID} .recent-track-row:active{cursor:grabbing}
     #${RECENT_PLAYS_ID} .recent-track-card{position:relative;flex:0 0 174px;scroll-snap-align:start;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);border-radius:10px;padding:9px;overflow:hidden;cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease}
     #${RECENT_PLAYS_ID} .recent-track-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.045)}
@@ -38,6 +44,8 @@ function addRecentPlaysStyles(){
       #${RECENT_PLAYS_ID}{margin-top:22px}
       #${RECENT_PLAYS_ID} .recent-carousel-hint{display:none}
       #${RECENT_PLAYS_ID} .recent-track-card{flex-basis:148px}
+      #${RECENT_PLAYS_ID} .recent-track-row{padding-bottom:10px;scrollbar-width:thin}
+      #${RECENT_PLAYS_ID} .recent-track-row::-webkit-scrollbar{height:5px}
     }
   `;
   document.head.appendChild(s);
