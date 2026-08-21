@@ -12,25 +12,38 @@ function addDevelopmentSkills(){
   );
   if(!development) return;
   const wrap = development.querySelector(".pill-wrap");
-  if(!wrap || wrap.dataset.extraSkillsAdded === "1") return;
-  wrap.dataset.extraSkillsAdded = "1";
-  DEVELOPMENT_SKILLS.forEach(([name, icon]) => {
-    if([...wrap.querySelectorAll(".pill")].some(p => p.textContent.trim() === name)) return;
-    const pill = document.createElement("span");
-    pill.className = "pill";
-    if(name === "Vite"){
-      const img = document.createElement("img");
-      img.src = icon;
-      img.alt = "Vite";
-      img.width = 11;
-      img.height = 11;
-      img.style.cssText = "display:block;width:11px;height:11px;object-fit:contain;margin-right:4px";
-      pill.append(img, document.createTextNode(name));
-    } else {
-      pill.innerHTML = `<span aria-hidden="true" style="font-size:11px;line-height:1;color:#999999">${icon}</span> ${name}`;
-    }
-    wrap.appendChild(pill);
-  });
+  if(!wrap) return;
+  if(wrap.dataset.extraSkillsAdded !== "1"){
+    wrap.dataset.extraSkillsAdded = "1";
+    DEVELOPMENT_SKILLS.forEach(([name, icon]) => {
+      if([...wrap.querySelectorAll(".pill")].some(p => p.textContent.trim() === name)) return;
+      const pill = document.createElement("span");
+      pill.className = "pill";
+      if(name === "Vite"){
+        const img = document.createElement("img");
+        img.src = icon;
+        img.alt = "Vite";
+        img.width = 11;
+        img.height = 11;
+        img.style.cssText = "display:block;width:11px;height:11px;object-fit:contain;margin-right:4px";
+        pill.append(img, document.createTextNode(name));
+      } else {
+        pill.innerHTML = `<span aria-hidden="true" style="font-size:11px;line-height:1;color:#999999">${icon}</span> ${name}`;
+      }
+      wrap.appendChild(pill);
+    });
+  }
+
+  // GitHub Actions belongs with the development tools. Move the existing pill
+  // instead of recreating it so its icon, text, and styling stay unchanged.
+  const database = [...groups].find(group =>
+    group.querySelector("h3")?.textContent.trim().toLowerCase() === "databases & data"
+  );
+  if(database){
+    const sourceWrap = database.querySelector(".pill-wrap");
+    const actions = sourceWrap && [...sourceWrap.querySelectorAll(".pill")].find(p => p.textContent.trim() === "GitHub Actions");
+    if(actions && actions.parentElement !== wrap) wrap.appendChild(actions);
+  }
 }
 
 if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", addDevelopmentSkills, {once:true});
