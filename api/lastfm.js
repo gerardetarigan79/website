@@ -5,7 +5,7 @@ export default async function handler(req,res){
   const type=req.query?.type||"recent";
   const methods={recent:"user.getrecenttracks",artists:"user.gettopartists",albums:"user.gettopalbums",info:"user.getinfo"};
   const method=methods[type]||methods.recent;
-  const params=new URLSearchParams({method,user,api_key:key,format:"json",limit:"12",period:"1month"});
+  const params=new URLSearchParams({method,user,api_key:key,format:"json",limit:type==="recent"?"20":"12",period:"1month"});
   try{
     const r=await fetch(`https://ws.audioscrobbler.com/2.0/?${params}`);
     const data=await r.json();
