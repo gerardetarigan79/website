@@ -1,7 +1,7 @@
 const RAW_BADGES="https://raw.githubusercontent.com/Fmasterpro27/Discord-badges/main/assets";
 const MAX_VERSTAPPEN_LOGO="/images/max-verstappen.png";
 const MONACO_TRACK="https://freesvg.org/img/RaceCircuitMonaco.png";
-const FERRARI_LOGO="https://di-uploads-pod31.dealerinspire.com/ferrarioffortlauderdale/uploads/2026/03/scuderia-logo-v02.png";
+const FERRARI_LOGO="/images/ferrari.png";
 const F1_TRACKS={"Dutch Grand Prix":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Zandvoort.svg","Italian Grand Prix":"https://commons.wikimedia.org/wiki/Special:FilePath/Monza.svg","Azerbaijan Grand Prix":"https://commons.wikimedia.org/wiki/Special:FilePath/Baku.svg","Singapore Grand Prix":"https://commons.wikimedia.org/wiki/Special:FilePath/Marina_Bay_Street_Circuit.svg","Japanese Grand Prix":"https://commons.wikimedia.org/wiki/Special:FilePath/Suzuka_circuit_map.svg","British Grand Prix":"https://commons.wikimedia.org/wiki/Special:FilePath/Silverstone_Circuit.svg","Belgian Grand Prix":"https://commons.wikimedia.org/wiki/Special:FilePath/Circuit_Spa-Francorchamps.svg","Hungarian Grand Prix":"https://commons.wikimedia.org/wiki/Special:FilePath/Hungaroring.svg","Austrian Grand Prix":"https://commons.wikimedia.org/wiki/Special:FilePath/Red_Bull_Ring.svg","Monaco Grand Prix":MONACO_TRACK};
 function addStyles(){if(document.getElementById("draven-enhancement-styles"))return;const s=document.createElement("style");s.id="draven-enhancement-styles";s.textContent=`
 .badges.actual-badges{display:flex;align-items:center;gap:6px;margin-top:6px}.actual-badge{width:15px;height:15px;object-fit:contain;display:block;filter:drop-shadow(0 2px 5px #0008)}
