@@ -24,10 +24,29 @@ function addMusicArtworkStyles(){
     .music-stat-card.lastfm-user{cursor:default!important}
     .music-stat-card.lastfm-user .lastfm-user-link{cursor:pointer!important;display:inline-block!important;transition:color .18s ease,transform .18s ease!important}
     .music-stat-card.lastfm-user .lastfm-user-link:hover{color:#fff!important;transform:translateY(-1px)!important}
+    /* Clean horizontal recent-plays scrollbar: subtle track, compact thumb, no arrow buttons. */
+    #music .recent-plays-scroll,
+    #music [class*="recent-plays"] [style*="overflow-x"]{
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.22) transparent;
+      scrollbar-gutter:stable;
+    }
+    #music .recent-plays-scroll::-webkit-scrollbar,
+    #music [class*="recent-plays"] [style*="overflow-x"]::-webkit-scrollbar{height:6px}
+    #music .recent-plays-scroll::-webkit-scrollbar-track,
+    #music [class*="recent-plays"] [style*="overflow-x"]::-webkit-scrollbar-track{background:transparent}
+    #music .recent-plays-scroll::-webkit-scrollbar-thumb,
+    #music [class*="recent-plays"] [style*="overflow-x"]::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:999px;border:1px solid transparent;background-clip:padding-box;transition:background .2s ease}
+    #music .recent-plays-scroll:hover::-webkit-scrollbar-thumb,
+    #music [class*="recent-plays"] [style*="overflow-x"]:hover::-webkit-scrollbar-thumb{background:rgba(255,255,255,.34);background-clip:padding-box}
+    #music .recent-plays-scroll::-webkit-scrollbar-thumb:active,
+    #music [class*="recent-plays"] [style*="overflow-x"]::-webkit-scrollbar-thumb:active{background:rgba(255,255,255,.48);background-clip:padding-box}
     @media(max-width:700px){
       #music .music-layout{grid-template-columns:1fr!important}
       #music .music-list:last-child .music-item{grid-template-columns:16px 42px minmax(0,1fr)!important}
       #music .music-list .music-album-art{width:42px;height:42px}
+      #music .recent-plays-scroll::-webkit-scrollbar,
+      #music [class*="recent-plays"] [style*="overflow-x"]::-webkit-scrollbar{height:4px}
     }
     @media(prefers-reduced-motion:reduce){#music .record-disc{transform:perspective(700px) rotateX(var(--cd-parallax-x,0deg)) rotateY(var(--cd-parallax-y,0deg)) rotateZ(0deg) translate3d(var(--cd-parallax-tx,0px),var(--cd-parallax-ty,0px),0)!important;transition:none!important}}
   `;
