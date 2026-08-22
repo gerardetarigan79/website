@@ -1,4 +1,0 @@
-/* Deliberately mirrors the visual effect of browser zoom at 110% without changing page content. */
-html {
-  zoom: 1.1;
-}
