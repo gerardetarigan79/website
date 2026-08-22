@@ -1,11 +1,27 @@
-export default async function handler(req,res){
-  const url=process.env.KV_REST_API_URL, token=process.env.KV_REST_API_TOKEN;
-  if(url&&token){
-    try{
-      const r=await fetch(`${url}/incr/draven_views`,{method:"POST",headers:{Authorization:`Bearer ${token}`}});
-      const j=await r.json();
-      return res.status(200).json({views:Number(j.result||0)});
-    }catch(e){}
+import { neon } from "@neondatabase/serverless";
+
+export default async function handler(req, res) {
+  const connectionString =
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.NEON_DATABASE_URL;
+
+  if (!connectionString) {
+    return res.status(500).json({ error: "Database connection is not configured" });
   }
-  return res.status(200).json({views:null,storage:"local-fallback"});
+
+  try {
+    const sql = neon(connectionString);
+    const rows = await sql`
+      UPDATE public.site_views
+      SET count = count + 1
+      WHERE id = 1
+      RETURNING count;
+    `;
+
+    return res.status(200).json({ views: Number(rows[0]?.count || 0) });
+  } catch (error) {
+    console.error("View counter error:", error);
+    return res.status(500).json({ error: "Unable to update view count" });
+  }
 }
