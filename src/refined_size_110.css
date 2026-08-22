@@ -1,0 +1,102 @@
+/* Manual 10% size refinement. No transform/zoom is used so layout hitboxes and horizontal scrollers keep their real geometry. */
+.page{padding-top:81px;padding-bottom:110px}
+.page-inner{width:min(902px,calc(100vw - 187px))}
+.kicker{font-size:11px;margin-bottom:9px}
+.page h1{font-size:34px}
+.lead{max-width:715px;font-size:12px;line-height:1.9;margin:14px 0 26px}
+.sidebar{width:64px}
+.side-logo{height:70px;font-size:19px}
+.side-item{width:40px;height:40px;margin:4px 0}
+.side-item:hover span{left:47px;font-size:10px;padding:7px 9px}
+.site{margin-left:64px}
+.discord-card{gap:13px;padding:15px;border-radius:8px}
+.avatar-wrap,.avatar{width:46px;height:46px}
+.avatar-decoration{inset:-5px;width:56px;height:56px}
+.name-row strong{font-size:12px}
+.discord-tag,.presence-text{font-size:9px}
+.badges{gap:4px;margin-top:6px;font-size:8px}
+.activity{margin-top:6px;font-size:9px}
+.small-action{font-size:9px;padding:7px 9px}
+.home-widgets{gap:10px;margin-top:11px}
+.widget{min-height:79px;padding:13px;border-radius:9px}
+.age-widget strong{font-size:28px}
+.age-widget small,.age-ms span,.age-ms small{font-size:8px}
+.age-ms b{font-size:10px}
+.flip-widget{gap:13px}
+.flip{width:24px;height:34px;font-size:16px}
+.colon{font-size:14px}
+.clock-meta{gap:4px}
+.clock-meta span,.clock-meta small{font-size:8px}
+.clock-meta b{font-size:9px}
+.weather-widget{gap:13px;min-height:77px}
+.weather-widget strong{font-size:12px}
+.weather-meta{gap:11px;margin-top:6px}
+.weather-meta span,.widget-label{font-size:9px}
+.music-stats{gap:9px;margin:20px 0}
+.stat{padding:11px 13px;gap:6px}
+.stat span{font-size:8px}
+.stat b{font-size:13px}
+.music-layout{grid-template-columns:209px 1fr 209px;gap:22px}
+.music-list h3,.group-title,.skill-group h3{font-size:9px;margin-bottom:14px}
+.music-item{grid-template-columns:18px 35px 1fr;gap:9px;margin:13px 0}
+.music-item .rank{font-size:9px}
+.music-item img,.mini-art{width:35px;height:35px}
+.music-item strong{font-size:9px}
+.music-item small{font-size:8px;margin-top:3px}
+.music-heading{font-size:11px;margin-bottom:9px}
+.record-stage{height:385px}
+.record-disc{width:308px;height:308px}
+.cover{width:253px;height:253px}
+.np-bottom{padding-top:10px}
+.np-bottom strong{font-size:13px}
+.np-bottom small{font-size:9px}
+.np-bottom button{width:31px;height:31px}
+.project-card{width:462px}
+.doxa-preview{height:242px}
+.doxa-title{font-size:29px}
+.project-body{padding:17px}
+.project-body h2{font-size:14px;margin:13px 0 6px}
+.project-body p,.project-body a{font-size:9px}
+.skill-group{margin-top:28px}
+.pill{padding:8px 10px;font-size:9px}
+.setup-grid{gap:10px;margin-bottom:30px}
+.group-title{margin-top:24px}
+.setup-card{min-height:77px;padding:12px;gap:11px}
+.setup-card strong{font-size:9px}
+.setup-card small{font-size:8px;margin-top:4px}
+.game-grid{gap:11px;margin-top:24px}
+.game-visual{height:275px}
+.game-visual .roblox{width:253px;height:253px}
+.game-visual .minecraft{height:253px}
+.game-info{gap:9px;padding:12px}
+.game-info strong{font-size:11px}
+.game-info small{font-size:8px}
+.steam-card{margin-top:11px;padding:17px}
+.steam-head h2{font-size:17px}
+.steam-head>a{font-size:9px}
+.steam-stats{gap:9px;margin-top:15px}
+.f1-hero{padding:24px;margin-top:22px}
+.f1-hero h2{font-size:28px;margin:11px 0 6px}
+.f1-hero p{font-size:10px}
+.f1-logo{right:44px;font-size:99px}
+.f1-interest-grid{gap:11px;margin-top:11px}
+.interest{gap:12px;padding:14px}
+/* Keep the 20-track recent-plays row a real horizontal scroll container. */
+#recent-plays-carousel .recent-track-row{gap:13px;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior-x:contain}
+#recent-plays-carousel .recent-track-card{flex:0 0 192px;padding:10px}
+#recent-plays-carousel .recent-track-info{padding:10px 2px 2px}
+#recent-plays-carousel .recent-track-name{font-size:13px}
+#recent-plays-carousel .recent-track-artist{font-size:11px}
+#recent-plays-carousel .recent-track-now{top:16px;left:16px;font-size:9px}
+@media(max-width:700px){
+  .page{padding-top:72px;padding-bottom:90px}
+  .page-inner{width:min(100% - 32px,902px)}
+  .sidebar{width:54px}
+  .site{margin-left:54px}
+  .side-logo{height:62px}
+  .music-layout{grid-template-columns:1fr}
+  .record-stage{height:320px}
+  .record-disc{width:270px;height:270px}
+  .cover{width:222px;height:222px}
+  #recent-plays-carousel .recent-track-card{flex-basis:163px}
+}
