@@ -23,7 +23,7 @@ function install() {
   `; document.head.appendChild(style);
   const button = control.querySelector(".draven-audio-mute"), slider = control.querySelector(".draven-audio-slider"), targetVolume = Number(slider.value);
   function persist(){localStorage.setItem(VOLUME_KEY,String(clamp(audio.volume)));localStorage.setItem(MUTED_KEY,audio.muted?"1":"0")}
-  function refreshButton(){const muted=audio.muted||audio.volume===0;button.innerHTML=icon(muted);button.setAttribute("aria-label",muted?"Unmute background music":"Mute background music")}
+  function refreshButton(){const muted=audio.muted;button.innerHTML=icon(muted);button.setAttribute("aria-label",muted?"Unmute background music":"Mute background music")}
   function reveal(){if(document.querySelector(".entry"))return false;requestAnimationFrame(()=>control.classList.add("visible"));return true}
   function fadeIn(){if(audio.muted||targetVolume<=0)return;const start=performance.now(),duration=3500,tick=now=>{const progress=Math.min(1,(now-start)/duration);audio.volume=targetVolume*(progress*progress*(3-2*progress));if(progress<1)requestAnimationFrame(tick);else persist()};requestAnimationFrame(tick)}
   function enter(){if(audio.dataset.started==="1")return;audio.dataset.started="1";audio.volume=0;audio.play().then(fadeIn).catch(()=>{delete audio.dataset.started})}
