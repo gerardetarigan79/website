@@ -21,29 +21,32 @@ function installBackgroundAudio(){
   audio.volume=volume;
   audio.muted=savedMuted;
 
+  // Browsers allow audible playback from a user gesture. The entry screen's
+  // click is a user gesture, so listen globally in capture phase and retry
+  // until playback succeeds. Do not gate this on sessionStorage: a fresh page
+  // load needs a fresh user gesture to start the audio again.
   const playFromEntry=()=>{
-    if(sessionStorage.getItem("draven-entered")==="1")return;
+    if(audio.muted||audio.volume===0)return;
     audio.play().catch(()=>{});
   };
-
-  window.addEventListener("pointerdown",playFromEntry,{capture:true,once:true});
+  window.addEventListener("pointerdown",playFromEntry,{capture:true});
   window.addEventListener("keydown",e=>{
     if(e.key!=="Enter"&&e.key!==" ")return;
     playFromEntry();
-  },{capture:true,once:true});
+  },{capture:true});
 
   const style=document.createElement("style");
   style.id=BG_AUDIO_STYLE_ID;
   style.textContent=`
-    .draven-audio-control{position:fixed;right:78px;bottom:12px;z-index:41;height:29px;display:flex;align-items:center;gap:7px;padding:5px 8px;border:1px solid #292930;border-radius:5px;background:#101014cc;backdrop-filter:blur(8px);box-shadow:0 8px 25px #0004}
+    .draven-audio-control{position:fixed;right:78px;bottom:12px;z-index:41;height:29px;box-sizing:border-box;display:flex;align-items:center;gap:7px;padding:0 8px;border:1px solid #292930;border-radius:5px;background:#101014cc;backdrop-filter:blur(8px);box-shadow:0 8px 25px #0004}
     .draven-audio-mute{width:17px;height:17px;padding:0;border:0;background:transparent;color:#666;display:grid;place-items:center;cursor:none;transition:color .18s ease,transform .18s ease}
     .draven-audio-mute:hover{color:#ddd;transform:scale(1.08)}
     .draven-audio-mute svg{width:12px;height:12px;display:block}
-    .draven-audio-slider{width:70px;height:3px;margin:0;accent-color:#8b45b8;cursor:none}
+    .draven-audio-slider{width:70px;height:18px;margin:0;padding:0;background:transparent;appearance:none;-webkit-appearance:none;cursor:none}
     .draven-audio-slider::-webkit-slider-runnable-track{height:3px;background:#292930;border-radius:999px}
-    .draven-audio-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:9px;height:9px;margin-top:-3px;border-radius:50%;background:#9a62c4;border:0;box-shadow:0 0 7px #6a029755}
+    .draven-audio-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:10px;height:10px;margin-top:-3.5px;border-radius:50%;background:#9a62c4;border:0;box-shadow:0 0 7px #6a029755}
     .draven-audio-slider::-moz-range-track{height:3px;background:#292930;border-radius:999px}
-    .draven-audio-slider::-moz-range-thumb{width:9px;height:9px;border-radius:50%;background:#9a62c4;border:0}
+    .draven-audio-slider::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:#9a62c4;border:0;box-shadow:0 0 7px #6a029755}
     @media(max-width:500px){.draven-audio-control{right:68px}.draven-audio-slider{width:55px}}
   `;
   document.head.appendChild(style);
