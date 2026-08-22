@@ -16,21 +16,9 @@ function installBackgroundAudio(){
   const savedVolume=Number.parseFloat(localStorage.getItem(BG_AUDIO_VOLUME_KEY));
   const volume=Number.isFinite(savedVolume)?Math.min(1,Math.max(0,savedVolume)):0.35;
   const savedMuted=localStorage.getItem(BG_AUDIO_MUTED_KEY)==="1";
-  audio.volume=savedMuted?volume:0;
+  audio.volume=0;
   audio.muted=savedMuted;
-  const fadeIn=()=>{
-    if(audio.muted||volume===0)return;
-    audio.volume=0;
-    const start=performance.now(),duration=1800;
-    const step=now=>{
-      if(audio.paused||audio.muted)return;
-      const progress=Math.min(1,(now-start)/duration);
-      const eased=1-Math.pow(1-progress,3);
-      audio.volume=volume*eased;
-      if(progress<1)requestAnimationFrame(step);else audio.volume=volume;
-    };
-    requestAnimationFrame(step);
-  };
+  const fadeIn=()=>{if(audio.muted||volume===0)return;audio.volume=0;const start=performance.now(),duration=3000;const tick=now=>{const progress=Math.min(1,(now-start)/duration);audio.volume=volume*(progress*progress*(3-2*progress));if(progress<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)};
   const playFromEntry=()=>{if(audio.muted||volume===0)return;audio.play().then(fadeIn).catch(()=>{})};
   window.addEventListener("pointerdown",playFromEntry,{capture:true});
   window.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;playFromEntry()},{capture:true});
