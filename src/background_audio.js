@@ -1,4 +1,4 @@
-const BG_AUDIO_SRC="/audio/background.mp3";
+const BG_AUDIO_SRC="/audio/backgroundaudio.mp3";
 const BG_AUDIO_VOLUME_KEY="draven-bg-volume";
 const BG_AUDIO_MUTED_KEY="draven-bg-muted";
 const BG_AUDIO_STYLE_ID="draven-background-audio-styles";
