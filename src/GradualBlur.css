@@ -30,11 +30,15 @@
   z-index: 1000;
 }
 
-/* Keep the header controls above the full-screen blur overlay. */
-.small-action,
-.volume-button,
-.view-button {
-  position: relative !important;
+/* The controls are separate fixed UI elements. Keep them above the full-screen blur. */
+#draven-audio-control,
+.views {
+  position: fixed !important;
   z-index: 1101 !important;
+  pointer-events: auto !important;
+}
+
+#draven-audio-control *,
+.views * {
   pointer-events: auto !important;
 }
