@@ -36,3 +36,7 @@
 .corner-tr { transform: translate(50%, -150%); border-left: none; border-bottom: none; }
 .corner-br { transform: translate(50%, 50%); border-left: none; border-top: none; }
 .corner-bl { transform: translate(-150%, 50%); border-right: none; border-top: none; }
+
+/* Containers with real cursor targets inside them should not become targets themselves. */
+.cursor-target:has(.cursor-target) { pointer-events: none; }
+.cursor-target:has(.cursor-target) .cursor-target { pointer-events: auto; }
