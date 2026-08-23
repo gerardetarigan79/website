@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import Particles from './Particles';
 import './OptionWheel.css';
 
 const DEFAULT_ITEMS = ['Ambient', 'House', 'Techno', 'Jazz', 'Lo-Fi', 'Synthwave', 'Trance', 'Funk', 'Disco', 'Hip-Hop', 'Chillwave', 'Drum & Bass'];
@@ -52,10 +53,6 @@ const OptionWheel = ({ items = DEFAULT_ITEMS, defaultSelected = 3, onChange, tex
     startLoop();
   }, [startLoop, playTick]);
 
-  // Wheel input only moves the animation target. There is deliberately no second
-  // velocity/inertia loop here: the render loop above already provides the smooth
-  // interpolation. This keeps the target monotonic with the user's wheel direction
-  // and prevents the old up/down oscillation caused by two competing animations.
   useEffect(() => {
     const el = rootRef.current; if (!el) return;
     const onWheel = e => {
@@ -95,9 +92,9 @@ const OptionWheel = ({ items = DEFAULT_ITEMS, defaultSelected = 3, onChange, tex
   useEffect(() => { applyTarget(targetRef.current, false, 'scroll'); }, [items, fontSize, spacing, curve, tilt, blur, fade, minOpacity, side, loop, smoothing, applyTarget]);
   useEffect(() => () => { if (rafRef.current != null) cancelAnimationFrame(rafRef.current); rafRef.current = null; audioRef.current?.pause(); }, []);
 
-  return <div ref={rootRef} role="listbox" tabIndex={0} aria-label="Site navigation" className={`option-wheel${side === 'right' ? ' option-wheel--right' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`} style={{ '--ow-text-color': textColor, '--ow-active-color': activeColor, '--ow-font-size': `${fontSize}rem`, '--ow-inset': `${inset}px` }} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd} onKeyDown={handleKeyDown}>
+  return <><Particles particleColors={["#ffffff"]} particleCount={200} particleSpread={10} speed={0.1} particleBaseSize={100} moveParticlesOnHover={true} alphaParticles={false} disableRotation={false} /><div ref={rootRef} role="listbox" tabIndex={0} aria-label="Site navigation" className={`option-wheel${side === 'right' ? ' option-wheel--right' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`} style={{ '--ow-text-color': textColor, '--ow-active-color': activeColor, '--ow-font-size': `${fontSize}rem`, '--ow-inset': `${inset}px` }} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd} onKeyDown={handleKeyDown}>
     {items.map((label, index) => <div key={`${label}-${index}`} ref={el => { itemRefs.current[index] = el; }} role="option" aria-selected={selectedIndex === index} className={`option-wheel__item${selectedIndex === index ? ' option-wheel__item--selected' : ''}`} onClick={() => handleItemClick(index)}>{label}</div>)}
-  </div>;
+  </div></>;
 };
 
 export default OptionWheel;
