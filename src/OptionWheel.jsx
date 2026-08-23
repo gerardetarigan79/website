@@ -10,8 +10,9 @@ const OptionWheel = ({
 }) => {
   const rootRef = useRef(null), itemRefs = useRef([]), posRef = useRef(defaultSelected), targetRef = useRef(defaultSelected);
   const rafRef = useRef(null), lastRef = useRef(0), cfgRef = useRef({}), onChangeRef = useRef(onChange), selectedRef = useRef(defaultSelected);
-  const wheelTimerRef = useRef(null), wheelVelocityRef = useRef(0), wheelFrameRef = useRef(null), dragRef = useRef(null), dragMovedRef = useRef(false);
-  const audioRef = useRef(null), audioUrlRef = useRef(''), lastTickRef = useRef(0), pageSyncLockRef = useRef(0);
+  const wheelVelocityRef = useRef(0), wheelFrameRef = useRef(null), dragRef = useRef(null), dragMovedRef = useRef(false);
+  const audioRef = useRef(null), audioUrlRef = useRef(''), lastTickRef = useRef(0), pageSyncLockRef = useRef(0), pageSyncRafRef = useRef(null);
+  const pageIndexRef = useRef(defaultSelected);
   const [selectedIndex, setSelectedIndex] = useState(defaultSelected), [isDragging, setIsDragging] = useState(false);
 
   const remPx = typeof window !== 'undefined' ? parseFloat(getComputedStyle(document.documentElement).fontSize) || 16 : 16;
@@ -59,8 +60,6 @@ const OptionWheel = ({
     startLoop();
   }, [startLoop, playTick]);
 
-  // Smooth, momentum-like wheel input. Instead of snapping after a short timeout,
-  // accumulate wheel velocity and let the same spring-like interpolation settle it.
   useEffect(() => {
     const el = rootRef.current; if (!el) return;
     const onWheel = e => {
@@ -78,43 +77,57 @@ const OptionWheel = ({
       if (wheelFrameRef.current == null) wheelFrameRef.current = requestAnimationFrame(consume);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => { el.removeEventListener('wheel', onWheel); if (wheelFrameRef.current != null) cancelAnimationFrame(wheelFrameRef.current); if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current); };
+    return () => { el.removeEventListener('wheel', onWheel); if (wheelFrameRef.current != null) cancelAnimationFrame(wheelFrameRef.current); };
   }, [applyTarget]);
 
-  // When the page itself scrolls, determine which navigation section is nearest the
-  // viewport center and move the wheel to it. The same animation path is used, so the
-  // wheel never visually jumps between labels.
   useEffect(() => {
     if (!items.length) return;
     let ticking = false;
     const syncToPage = () => {
-      ticking = false; if (performance.now() < pageSyncLockRef.current) return;
+      ticking = false;
+      if (performance.now() < pageSyncLockRef.current) return;
       const center = window.innerHeight * 0.38;
-      let best = 0, bestDistance = Infinity;
+      let best = pageIndexRef.current;
+      let bestTop = -Infinity;
+      // Use a directional section threshold instead of nearest-distance selection.
+      // This prevents the selected item from bouncing between two sections while a
+      // smooth page scroll is settling around their boundary.
       items.forEach((item, index) => {
         const id = String(item).trim().toLowerCase().replace(/\s+/g, '-');
         const section = document.getElementById(id);
         if (!section) return;
-        const rect = section.getBoundingClientRect(), distance = Math.abs(rect.top - center);
-        if (distance < bestDistance) { bestDistance = distance; best = index; }
+        const top = section.getBoundingClientRect().top;
+        if (top <= center && top > bestTop) { bestTop = top; best = index; }
       });
-      if (best !== selectedRef.current) applyTarget(best, true, 'scroll');
+      if (best !== pageIndexRef.current) {
+        pageIndexRef.current = best;
+        applyTarget(best, true, 'scroll');
+      }
     };
-    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(syncToPage); } };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      pageSyncRafRef.current = requestAnimationFrame(syncToPage);
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', syncToPage);
     const initial = setTimeout(syncToPage, 0);
-    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', syncToPage); clearTimeout(initial); };
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', syncToPage);
+      clearTimeout(initial);
+      if (pageSyncRafRef.current != null) cancelAnimationFrame(pageSyncRafRef.current);
+    };
   }, [items, applyTarget]);
 
   const handlePointerDown = useCallback(e => { if (!cfgRef.current.draggable) return; dragRef.current = { y: e.clientY, start: targetRef.current, id: e.pointerId }; dragMovedRef.current = false; setIsDragging(true); }, []);
   const handlePointerMove = useCallback(e => { const drag = dragRef.current; if (!drag) return; const dy = e.clientY - drag.y; if (!dragMovedRef.current && Math.abs(dy) > 4) { dragMovedRef.current = true; rootRef.current?.setPointerCapture(drag.id); } if (dragMovedRef.current) applyTarget(drag.start - dy / cfgRef.current.rowH, false, 'user'); }, [applyTarget]);
   const handlePointerEnd = useCallback(() => { if (!dragRef.current) return; dragRef.current = null; setIsDragging(false); if (dragMovedRef.current) applyTarget(targetRef.current, true, 'user'); }, [applyTarget]);
-  const handleItemClick = useCallback(index => { if (dragMovedRef.current) return; const cfg = cfgRef.current, cur = targetRef.current; let d = index - (((cur % cfg.count) + cfg.count) % cfg.count); if (cfg.loop && cfg.count > 1) { if (d > cfg.count / 2) d -= cfg.count; else if (d < -cfg.count / 2) d += cfg.count; } pageSyncLockRef.current = performance.now() + 900; applyTarget(cur + d, true, 'user'); }, [applyTarget]);
-  const handleKeyDown = useCallback(e => { let delta = null; if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') delta = -1; else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') delta = 1; if (delta == null) return; e.preventDefault(); pageSyncLockRef.current = performance.now() + 900; applyTarget(Math.round(targetRef.current) + delta, true, 'user'); }, [applyTarget]);
+  const handleItemClick = useCallback(index => { if (dragMovedRef.current) return; const cfg = cfgRef.current, cur = targetRef.current; let d = index - (((cur % cfg.count) + cfg.count) % cfg.count); if (cfg.loop && cfg.count > 1) { if (d > cfg.count / 2) d -= cfg.count; else if (d < -cfg.count / 2) d += cfg.count; } pageSyncLockRef.current = performance.now() + 900; pageIndexRef.current = index; applyTarget(cur + d, true, 'user'); }, [applyTarget]);
+  const handleKeyDown = useCallback(e => { let delta = null; if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') delta = -1; else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') delta = 1; if (delta == null) return; e.preventDefault(); pageSyncLockRef.current = performance.now() + 900; pageIndexRef.current = Math.max(0, Math.min(items.length - 1, selectedRef.current + delta)); applyTarget(Math.round(targetRef.current) + delta, true, 'user'); }, [applyTarget, items.length]);
 
   useEffect(() => { applyTarget(targetRef.current, false, 'scroll'); }, [items, fontSize, spacing, curve, tilt, blur, fade, minOpacity, side, loop, smoothing, applyTarget]);
-  useEffect(() => () => { if (rafRef.current != null) cancelAnimationFrame(rafRef.current); if (wheelFrameRef.current != null) cancelAnimationFrame(wheelFrameRef.current); rafRef.current = null; wheelFrameRef.current = null; audioRef.current?.pause(); }, []);
+  useEffect(() => () => { if (rafRef.current != null) cancelAnimationFrame(rafRef.current); if (wheelFrameRef.current != null) cancelAnimationFrame(wheelFrameRef.current); if (pageSyncRafRef.current != null) cancelAnimationFrame(pageSyncRafRef.current); rafRef.current = null; wheelFrameRef.current = null; pageSyncRafRef.current = null; audioRef.current?.pause(); }, []);
 
   return <div ref={rootRef} role="listbox" tabIndex={0} aria-label="Site navigation" className={`option-wheel${side === 'right' ? ' option-wheel--right' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`} style={{ '--ow-text-color': textColor, '--ow-active-color': activeColor, '--ow-font-size': `${fontSize}rem`, '--ow-inset': `${inset}px` }} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd} onKeyDown={handleKeyDown}>
     {items.map((label, index) => <div key={`${label}-${index}`} ref={el => { itemRefs.current[index] = el; }} role="option" aria-selected={selectedIndex === index} className={`option-wheel__item${selectedIndex === index ? ' option-wheel__item--selected' : ''}`} onClick={() => handleItemClick(index)}>{label}</div>)}
