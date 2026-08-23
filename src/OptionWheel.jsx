@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import './OptionWheel.css';
 
 const DEFAULT_ITEMS = [
@@ -68,7 +68,6 @@ const OptionWheel = ({
     const settled = Math.abs(target - next) < 0.001;
     if (settled) next = target;
     posRef.current = next;
-
     const els = itemRefs.current;
     const n = cfg.count;
     const mirror = cfg.side === 'right' ? -1 : 1;
@@ -215,29 +214,8 @@ const OptionWheel = ({
   }, []);
 
   return (
-    <div
-      ref={rootRef}
-      role="listbox"
-      tabIndex={0}
-      aria-label="Site navigation"
-      className={`option-wheel${side === 'right' ? ' option-wheel--right' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`}
-      style={{ '--ow-text-color': textColor, '--ow-active-color': activeColor, '--ow-font-size': `${fontSize}rem`, '--ow-inset': `${inset}px` }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerEnd}
-      onPointerCancel={handlePointerEnd}
-      onKeyDown={handleKeyDown}
-    >
-      {items.map((label, index) => (
-        <div
-          key={`${label}-${index}`}
-          ref={el => { itemRefs.current[index] = el; }}
-          role="option"
-          aria-selected={selectedIndex === index}
-          className={`option-wheel__item${selectedIndex === index ? ' option-wheel__item--selected' : ''}`}
-          onClick={() => handleItemClick(index)}
-        >{label}</div>
-      ))}
+    <div ref={rootRef} role="listbox" tabIndex={0} aria-label="Site navigation" className={`option-wheel${side === 'right' ? ' option-wheel--right' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`} style={{ '--ow-text-color': textColor, '--ow-active-color': activeColor, '--ow-font-size': `${fontSize}rem`, '--ow-inset': `${inset}px` }} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd} onKeyDown={handleKeyDown}>
+      {items.map((label, index) => <div key={`${label}-${index}`} ref={el => { itemRefs.current[index] = el; }} role="option" aria-selected={selectedIndex === index} className={`option-wheel__item${selectedIndex === index ? ' option-wheel__item--selected' : ''}`} onClick={() => handleItemClick(index)}>{label}</div>)}
     </div>
   );
 };
