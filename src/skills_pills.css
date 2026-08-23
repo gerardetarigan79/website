@@ -1,0 +1,2 @@
+.skill-group .pill{background:rgba(15,15,25,.4);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:color .2s,border-color .2s,background .2s,transform .2s,box-shadow .2s}
+.skill-group .pill:hover{color:#eee;border-color:rgba(255,255,255,.16);background:rgba(255,255,255,.05);transform:translateY(-2px);box-shadow:0 6px 20px rgba(106,2,151,.13)}
