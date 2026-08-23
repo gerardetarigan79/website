@@ -14,3 +14,11 @@
   height: 100%;
   pointer-events: none;
 }
+
+.site,
+.page,
+main,
+section {
+  position: relative;
+  z-index: 1;
+}
