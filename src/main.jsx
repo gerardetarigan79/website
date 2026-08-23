@@ -8,6 +8,7 @@ import {
   Play, Pause, Disc3, Flame, Users, Timer, CalendarDays, Gauge, Sparkles,
   RefreshCw
 } from "lucide-react";
+import TargetCursor from "./TargetCursor";
 import "./styles.css";
 
 const DISCORD_ID = "715076381293150288";
@@ -194,16 +195,6 @@ function Interest({icon,title,value}){return <div className="interest"><span>{ic
 function Biolinks(){return <Page id="biolinks" kicker="my links" title="biolinks"><p className="lead">my <b>biolinks</b></p><div className="bio-list">{BIO.map(([n,u,i])=><a className="bio-card" href={u} target="_blank" rel="noreferrer" key={n}><span>{i}</span><div><strong>{n}</strong><small>@drav</small></div><ExternalLink size={12}/></a>)}</div></Page>}
 function Contact(){const [copied,setCopied]=useState(false);const copy=async()=>{await navigator.clipboard?.writeText("@drva");setCopied(true);setTimeout(()=>setCopied(false),1500)};return <Page id="contact" kicker="get in touch" title="contact"><p className="lead">questions, or just a hello. <b>discord</b> is the fastest way to reach me.</p><div className="contact-card"><div className="contact-person"><div className="simple-avatar">D</div><div><strong>Draven</strong><small>feel free to reach me</small></div></div><div className="contact-buttons"><button onClick={copy}>{copied?<Check size={11}/>:<Copy size={11}/>} @drva</button><a href="https://discord.com/users/715076381293150288" target="_blank" rel="noreferrer">open <ExternalLink size={11}/></a></div></div></Page>}
 
-function CursorFX(){
-  const ref=useRef(null);
-  useEffect(()=>{
-    const dot=document.createElement("div");dot.className="cursor-dot";document.body.appendChild(dot);
-    const trail=[]; let last=0;
-    const move=e=>{dot.style.left=e.clientX+"px";dot.style.top=e.clientY+"px";if(performance.now()-last>26){const t=document.createElement("i");t.className="star-trail";t.style.left=e.clientX+"px";t.style.top=e.clientY+"px";document.body.appendChild(t);trail.push(t);setTimeout(()=>t.remove(),500);last=performance.now()}};
-    window.addEventListener("pointermove",move); return()=>{window.removeEventListener("pointermove",move);dot.remove();trail.forEach(x=>x.remove())}
-  },[]);
-  return null;
-}
 function Entry({onEnter}){const [ready,setReady]=useState(false);useEffect(()=>{const t=setTimeout(()=>setReady(true),600);return()=>clearTimeout(t)},[]);return <div className={`entry ${ready?"ready":""}`} onClick={onEnter} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onEnter()}} tabIndex="0"><div className="entry-stars">✦</div><div className="entry-title">Draven's Website</div><div className="entry-sub">press anything to enter</div><div className="entry-line"/></div>}
 function Views(){
   const [views,setViews]=useState(null);
@@ -222,7 +213,8 @@ function App(){
     return()=>{io.disconnect();window.removeEventListener("hashchange",sync)}
   },[entered]);
   const enter=()=>{sessionStorage.setItem("draven-entered","1");setEntered(true)};
-  if(!entered)return <><CursorFX/><Entry onEnter={enter}/></>;
-  return <><CursorFX/><aside className="sidebar"><div className="side-logo">D</div>{NAV.map(([id,label,I])=><a className={`side-item ${active===id?"active":""}`} href={`#${id}`} key={id} title={label} onClick={()=>{setActive(id);requestAnimationFrame(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}))}}><I size={14}/><span>{label}</span></a>)}</aside><main className="site">{PAGES.map(id=>({home:<Home/>,music:<Music/>,projects:<Projects/>,skills:<Skills/>,setup:<Setup/>,games:<Games/>,f1:<F1/>,biolinks:<Biolinks/>,contact:<Contact/>}[id]))}</main><Views/></>
+  const cursor=<TargetCursor targetSelector="a, button, [role='button'], .cursor-target" spinDuration={2} hideDefaultCursor={true} parallaxOn={true}/>;
+  if(!entered)return <>{cursor}<Entry onEnter={enter}/></>;
+  return <>{cursor}<aside className="sidebar"><div className="side-logo">D</div>{NAV.map(([id,label,I])=><a className={`side-item ${active===id?"active":""}`} href={`#${id}`} key={id} title={label} onClick={()=>{setActive(id);requestAnimationFrame(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}))}}><I size={14}/><span>{label}</span></a>)}</aside><main className="site">{PAGES.map(id=>({home:<Home/>,music:<Music/>,projects:<Projects/>,skills:<Skills/>,setup:<Setup/>,games:<Games/>,f1:<F1/>,biolinks:<Biolinks/>,contact:<Contact/>}[id]))}</main><Views/></>
 }
 createRoot(document.getElementById("root")).render(<App/>);
