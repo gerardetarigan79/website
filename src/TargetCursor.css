@@ -41,3 +41,18 @@
 /* Containers with real cursor targets inside them should not become targets themselves. */
 .cursor-target:has(.cursor-target) { pointer-events: none; }
 .cursor-target:has(.cursor-target) .cursor-target { pointer-events: auto; }
+
+/* The featured Recent Plays card is transparent; keep its CD, header, and track text untouched. */
+.now-playing,
+.now-playing::before,
+.now-playing::after {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.now-playing::before,
+.now-playing::after {
+  content: none !important;
+  display: none !important;
+}
