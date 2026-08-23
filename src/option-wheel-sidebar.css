@@ -6,7 +6,7 @@
   width: 175px;
   height: 100vh;
   z-index: 30;
-  border-right: 1px solid #19191c;
+  border-right: none;
   background: rgba(7, 7, 9, 0.9);
   backdrop-filter: blur(14px);
   overflow: hidden;
