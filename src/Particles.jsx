@@ -23,7 +23,12 @@ const Particles = ({particleCount=200,particleSpread=10,speed=0.1,particleColors
     window.addEventListener('resize',resize); resize();
     if(moveParticlesOnHover) window.addEventListener('mousemove',move,{passive:true});
     window.addEventListener('scroll',scroll,{passive:true});
-    const count=particleCount,pos=new Float32Array(count*3),randoms=new Float32Array(count*4),colors=new Float32Array(count*3),palette=particleColors?.length?particleColors:defaultColors;
+    const count=particleCount,pos=new Float32Array(count*3),randoms=new Float32Array(count*4),colors=new Float32Array(count*3);
+    // If the caller supplies only white (as the original React Bits example does),
+    // deliberately expand it into the site's purple palette so the particles remain visibly colored.
+    const supplied=particleColors?.filter(Boolean) || [];
+    const onlyWhite=supplied.length>0 && supplied.every(c=>String(c).toLowerCase() === '#fff' || String(c).toLowerCase() === '#ffffff');
+    const palette=onlyWhite ? defaultColors : (supplied.length ? supplied : defaultColors);
     for(let i=0;i<count;i++){let x,y,z,len;do{x=Math.random()*2-1;y=Math.random()*2-1;z=Math.random()*2-1;len=x*x+y*y+z*z;}while(len>1||len===0);const r=Math.cbrt(Math.random());pos.set([x*r,y*r,z*r],i*3);randoms.set([Math.random(),Math.random(),Math.random(),Math.random()],i*4);colors.set(hexToRgb(palette[Math.floor(Math.random()*palette.length)]),i*3);}
     const geometry=new Geometry(gl,{position:{size:3,data:pos},random:{size:4,data:randoms},color:{size:3,data:colors}});
     const program=new Program(gl,{vertex,fragment,uniforms:{uTime:{value:0},uSpread:{value:particleSpread},uBaseSize:{value:particleBaseSize*pixelRatio},uSizeRandomness:{value:sizeRandomness},uAlphaParticles:{value:alphaParticles?1:0}},transparent:true,depthTest:false});
