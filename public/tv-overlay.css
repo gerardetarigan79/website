@@ -3,3 +3,8 @@
 .discord-card::before,.widget::before,.project-card::before,.setup-card::before,.game-card::before,.steam-card::before,.f1-hero::before,.interest::before,.bio-card::before,.contact-card::before,.stat::before,.now-playing::before,.f1-points::before,.next-race::before,.pill::before,.small-action::before,.np-bottom::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:19;opacity:.06;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.8) 100%)}
 .discord-card>*,.widget>* ,.project-card>* ,.setup-card>* ,.game-card>* ,.steam-card>* ,.f1-hero>* ,.interest>* ,.bio-card>* ,.contact-card>* ,.stat>* ,.now-playing>* ,.f1-points>* ,.next-race>* ,.pill>* ,.small-action>* ,.np-bottom>*{position:relative;z-index:21}
 @media(max-width:700px){.discord-card::after,.widget::after,.project-card::after,.setup-card::after,.game-card::after,.steam-card::after,.f1-hero::after,.interest::after,.bio-card::after,.contact-card::after,.stat::after,.now-playing::after,.f1-points::after,.next-race::after,.pill::after,.small-action::after,.np-bottom::after{opacity:.08}}
+
+/* Grouping containers are intentionally invisible and must never receive the CRT overlay. */
+.music-list,.skill-group{background:transparent!important;background-image:none!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+.music-list::before,.music-list::after,.skill-group::before,.skill-group::after{content:none!important;display:none!important;background:none!important;box-shadow:none!important;filter:none!important;opacity:0!important;}
+.music-list>*,.skill-group>*{position:relative;z-index:auto;}
