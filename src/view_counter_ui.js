@@ -16,7 +16,7 @@ function installViewCounter(){
   styleViewCounter();
   const style=document.createElement("style");
   style.textContent=`
-    .views{display:flex!important;align-items:center;justify-content:center;gap:7px;min-height:30px;padding:7px 11px!important;border-radius:7px!important;font-size:9px!important;color:#777!important;line-height:1!important;white-space:nowrap;transition:transform .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease!important}
+    .views{position:fixed!important;z-index:1101!important;pointer-events:auto!important;display:flex!important;align-items:center;justify-content:center;gap:7px;min-height:30px;padding:7px 11px!important;border-radius:7px!important;font-size:9px!important;color:#777!important;line-height:1!important;white-space:nowrap;transition:transform .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease!important}
     .views:hover{color:#bbb!important;border-color:#3a3a42!important;transform:translateY(-1px);box-shadow:0 7px 20px #0007}
     .view-eye-icon{width:15px;height:15px;flex:0 0 15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
     .views span{display:block}
