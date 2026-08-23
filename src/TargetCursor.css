@@ -28,14 +28,15 @@
   top: 50%;
   width: 12px;
   height: 12px;
-  border: 3px solid #fff;
+  border: 2px solid #fff;
+  border-radius: 4px;
   will-change: transform;
 }
 
-.corner-tl { transform: translate(-150%, -150%); border-right: none; border-bottom: none; }
-.corner-tr { transform: translate(50%, -150%); border-left: none; border-bottom: none; }
-.corner-br { transform: translate(50%, 50%); border-left: none; border-top: none; }
-.corner-bl { transform: translate(-150%, 50%); border-right: none; border-top: none; }
+.corner-tl { transform: translate(-150%, -150%); border-right: none; border-bottom: none; border-top-left-radius: 5px; }
+.corner-tr { transform: translate(50%, -150%); border-left: none; border-bottom: none; border-top-right-radius: 5px; }
+.corner-br { transform: translate(50%, 50%); border-left: none; border-top: none; border-bottom-right-radius: 5px; }
+.corner-bl { transform: translate(-150%, 50%); border-right: none; border-top: none; border-bottom-left-radius: 5px; }
 
 /* Containers with real cursor targets inside them should not become targets themselves. */
 .cursor-target:has(.cursor-target) { pointer-events: none; }
