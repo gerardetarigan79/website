@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  font-family: 'Kode Mono', monospace !important;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: 'Kode Mono', monospace !important;
+}
+
+.side-logo,
+.page h1,
+.age-widget strong,
+.doxa-title,
+.f1-hero h2 {
+  font-family: 'Kode Mono', monospace !important;
+}
