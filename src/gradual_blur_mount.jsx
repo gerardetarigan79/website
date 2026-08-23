@@ -17,7 +17,7 @@ createRoot(mount).render(
     <GradualBlur
       target="parent"
       position="top"
-      height="6rem"
+      height="4rem"
       strength={2}
       divCount={5}
       curve="bezier"
@@ -27,7 +27,7 @@ createRoot(mount).render(
     <GradualBlur
       target="parent"
       position="bottom"
-      height="6rem"
+      height="4rem"
       strength={2}
       divCount={5}
       curve="bezier"
