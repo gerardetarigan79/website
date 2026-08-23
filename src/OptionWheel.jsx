@@ -6,7 +6,7 @@ const DEFAULT_ITEMS = ['Ambient', 'House', 'Techno', 'Jazz', 'Lo-Fi', 'Synthwave
 const OptionWheel = ({ items = DEFAULT_ITEMS, defaultSelected = 3, onChange, textColor = '#a6a6a6', activeColor = '#ffffff', side = 'left', fontSize = 3, spacing = 1.4, curve = 1, tilt = 6, blur = 2, fade = 0.25, minOpacity = 0.05, smoothing = 200, inset = 80, loop = false, draggable = true, soundUrl = '', soundVolume = 0.5, className = '' }) => {
   const rootRef = useRef(null), itemRefs = useRef([]), posRef = useRef(defaultSelected), targetRef = useRef(defaultSelected);
   const rafRef = useRef(null), lastRef = useRef(0), cfgRef = useRef({}), onChangeRef = useRef(onChange), selectedRef = useRef(defaultSelected);
-  const wheelVelocityRef = useRef(0), wheelFrameRef = useRef(null), wheelLastRef = useRef(0), dragRef = useRef(null), dragMovedRef = useRef(false);
+  const dragRef = useRef(null), dragMovedRef = useRef(false);
   const audioRef = useRef(null), audioUrlRef = useRef(''), lastTickRef = useRef(0);
   const pageSyncLockRef = useRef(0), wheelInteractionRef = useRef(0);
   const [selectedIndex, setSelectedIndex] = useState(defaultSelected), [isDragging, setIsDragging] = useState(false);
@@ -19,7 +19,9 @@ const OptionWheel = ({ items = DEFAULT_ITEMS, defaultSelected = 3, onChange, tex
     const dt = Math.min((now - lastRef.current) / 1000, 0.05); lastRef.current = now;
     const cfg = cfgRef.current, tau = Math.max(cfg.smoothing, 1) / 1000, k = 1 - Math.exp(-dt / tau);
     const target = targetRef.current, cur = posRef.current;
-    let next = cur + (target - cur) * k; if (Math.abs(target - next) < 0.001) next = target; posRef.current = next;
+    let next = cur + (target - cur) * k;
+    if (Math.abs(target - next) < 0.001) next = target;
+    posRef.current = next;
     const els = itemRefs.current, n = cfg.count, mirror = cfg.side === 'right' ? -1 : 1, tiltRad = (cfg.tilt * Math.PI) / 180;
     const R = tiltRad > 0.0005 ? cfg.rowH / tiltRad : 0;
     for (let i = 0; i < n; i++) {
@@ -40,41 +42,34 @@ const OptionWheel = ({ items = DEFAULT_ITEMS, defaultSelected = 3, onChange, tex
   const playTick = useCallback(() => { const { soundUrl, soundVolume } = cfgRef.current; if (!soundUrl) return; const now = performance.now(); if (now - lastTickRef.current < 55) return; lastTickRef.current = now; if (!audioRef.current || audioUrlRef.current !== soundUrl) { audioRef.current = new Audio(soundUrl); audioRef.current.preload = 'auto'; audioUrlRef.current = soundUrl; } audioRef.current.volume = Math.min(Math.max(soundVolume, 0), 1); audioRef.current.currentTime = 0; audioRef.current.play()?.catch(() => {}); }, []);
 
   const applyTarget = useCallback((value, snap = false, source = 'user') => {
-    const cfg = cfgRef.current; if (!cfg.count) return; let v = value; if (!cfg.loop) v = Math.min(Math.max(v, 0), Math.max(cfg.count - 1, 0)); if (snap) v = Math.round(v); targetRef.current = v;
+    const cfg = cfgRef.current; if (!cfg.count) return;
+    let v = value;
+    if (!cfg.loop) v = Math.min(Math.max(v, 0), Math.max(cfg.count - 1, 0));
+    if (snap) v = Math.round(v);
+    targetRef.current = v;
     const idx = ((Math.round(v) % cfg.count) + cfg.count) % cfg.count;
     if (idx !== selectedRef.current) { selectedRef.current = idx; setSelectedIndex(idx); if (source !== 'scroll') onChangeRef.current?.(idx, cfg.items[idx]); playTick(); }
     startLoop();
   }, [startLoop, playTick]);
 
+  // Wheel input only moves the animation target. There is deliberately no second
+  // velocity/inertia loop here: the render loop above already provides the smooth
+  // interpolation. This keeps the target monotonic with the user's wheel direction
+  // and prevents the old up/down oscillation caused by two competing animations.
   useEffect(() => {
     const el = rootRef.current; if (!el) return;
     const onWheel = e => {
       e.preventDefault();
       const cfg = cfgRef.current;
-      const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
-      wheelInteractionRef.current = performance.now() + 450;
-      wheelVelocityRef.current += delta / Math.max(cfg.rowH, 1);
-      wheelVelocityRef.current = Math.max(-2.2, Math.min(2.2, wheelVelocityRef.current));
-      if (wheelFrameRef.current == null) {
-        wheelLastRef.current = performance.now();
-        const consume = now => {
-          const dt = Math.min((now - wheelLastRef.current) / 1000, 0.04);
-          wheelLastRef.current = now;
-          const velocity = wheelVelocityRef.current;
-          if (Math.abs(velocity) < 0.001) { wheelVelocityRef.current = 0; wheelFrameRef.current = null; return; }
-          // Integrate velocity using elapsed time, then apply friction. The wheel target
-          // is never recursively advanced from a stale target, preventing oscillation.
-          const nextTarget = targetRef.current + velocity * dt * 8;
-          applyTarget(nextTarget, false, 'user');
-          const friction = Math.exp(-dt * 10);
-          wheelVelocityRef.current *= friction;
-          wheelFrameRef.current = requestAnimationFrame(consume);
-        };
-        wheelFrameRef.current = requestAnimationFrame(consume);
-      }
+      let delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
+      if (Math.abs(delta) < 0.01) return;
+      const normalized = delta / Math.max(cfg.rowH, 1);
+      const step = Math.max(-0.85, Math.min(0.85, normalized * 0.55));
+      wheelInteractionRef.current = performance.now() + 1000;
+      applyTarget(targetRef.current + step, false, 'user');
     };
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => { el.removeEventListener('wheel', onWheel); if (wheelFrameRef.current != null) cancelAnimationFrame(wheelFrameRef.current); wheelFrameRef.current = null; wheelVelocityRef.current = 0; };
+    return () => el.removeEventListener('wheel', onWheel);
   }, [applyTarget]);
 
   useEffect(() => {
@@ -93,12 +88,12 @@ const OptionWheel = ({ items = DEFAULT_ITEMS, defaultSelected = 3, onChange, tex
   }, [items, applyTarget]);
 
   const handlePointerDown = useCallback(e => { if (!cfgRef.current.draggable) return; dragRef.current = { y: e.clientY, start: targetRef.current, id: e.pointerId }; dragMovedRef.current = false; setIsDragging(true); }, []);
-  const handlePointerMove = useCallback(e => { const drag = dragRef.current; if (!drag) return; const dy = e.clientY - drag.y; if (!dragMovedRef.current && Math.abs(dy) > 4) { dragMovedRef.current = true; rootRef.current?.setPointerCapture(drag.id); } if (dragMovedRef.current) { wheelInteractionRef.current = performance.now() + 400; applyTarget(drag.start - dy / cfgRef.current.rowH, false, 'user'); } }, [applyTarget]);
-  const handlePointerEnd = useCallback(() => { if (!dragRef.current) return; dragRef.current = null; setIsDragging(false); if (dragMovedRef.current) { wheelInteractionRef.current = performance.now() + 450; applyTarget(targetRef.current, true, 'user'); } }, [applyTarget]);
+  const handlePointerMove = useCallback(e => { const drag = dragRef.current; if (!drag) return; const dy = e.clientY - drag.y; if (!dragMovedRef.current && Math.abs(dy) > 4) { dragMovedRef.current = true; rootRef.current?.setPointerCapture(drag.id); } if (dragMovedRef.current) { wheelInteractionRef.current = performance.now() + 1000; applyTarget(drag.start - dy / cfgRef.current.rowH, false, 'user'); } }, [applyTarget]);
+  const handlePointerEnd = useCallback(() => { if (!dragRef.current) return; dragRef.current = null; setIsDragging(false); if (dragMovedRef.current) { wheelInteractionRef.current = performance.now() + 500; applyTarget(targetRef.current, true, 'user'); } }, [applyTarget]);
   const handleItemClick = useCallback(index => { if (dragMovedRef.current) return; const cfg = cfgRef.current, cur = targetRef.current; let d = index - (((cur % cfg.count) + cfg.count) % cfg.count); if (cfg.loop && cfg.count > 1) { if (d > cfg.count / 2) d -= cfg.count; else if (d < -cfg.count / 2) d += cfg.count; } pageSyncLockRef.current = performance.now() + 900; applyTarget(cur + d, true, 'user'); }, [applyTarget]);
   const handleKeyDown = useCallback(e => { let delta = null; if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') delta = -1; else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') delta = 1; if (delta == null) return; e.preventDefault(); pageSyncLockRef.current = performance.now() + 900; applyTarget(Math.round(targetRef.current) + delta, true, 'user'); }, [applyTarget]);
   useEffect(() => { applyTarget(targetRef.current, false, 'scroll'); }, [items, fontSize, spacing, curve, tilt, blur, fade, minOpacity, side, loop, smoothing, applyTarget]);
-  useEffect(() => () => { if (rafRef.current != null) cancelAnimationFrame(rafRef.current); if (wheelFrameRef.current != null) cancelAnimationFrame(wheelFrameRef.current); rafRef.current = null; wheelFrameRef.current = null; audioRef.current?.pause(); }, []);
+  useEffect(() => () => { if (rafRef.current != null) cancelAnimationFrame(rafRef.current); rafRef.current = null; audioRef.current?.pause(); }, []);
 
   return <div ref={rootRef} role="listbox" tabIndex={0} aria-label="Site navigation" className={`option-wheel${side === 'right' ? ' option-wheel--right' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`} style={{ '--ow-text-color': textColor, '--ow-active-color': activeColor, '--ow-font-size': `${fontSize}rem`, '--ow-inset': `${inset}px` }} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd} onKeyDown={handleKeyDown}>
     {items.map((label, index) => <div key={`${label}-${index}`} ref={el => { itemRefs.current[index] = el; }} role="option" aria-selected={selectedIndex === index} className={`option-wheel__item${selectedIndex === index ? ' option-wheel__item--selected' : ''}`} onClick={() => handleItemClick(index)}>{label}</div>)}
