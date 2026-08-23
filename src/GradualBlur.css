@@ -29,3 +29,12 @@
   pointer-events: none;
   z-index: 1000;
 }
+
+/* Keep the header controls above the full-screen blur overlay. */
+.small-action,
+.volume-button,
+.view-button {
+  position: relative !important;
+  z-index: 1101 !important;
+  pointer-events: auto !important;
+}
