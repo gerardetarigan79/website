@@ -8,3 +8,6 @@
 .now-playing::before,.now-playing::after{content:none!important;display:none!important}
 .record-stage{overflow:visible!important}
 .cover{box-shadow:0 24px 40px rgba(0,0,0,.55),0 0 90px rgba(106,2,151,.16)!important}
+
+/* Recent Plays: precisely center the CD spindle hole without touching the spin or tilt transforms. */
+#music .record-disc::after{left:50%!important;top:50%!important;margin:0!important;transform:translate(-50%,-50%) translateZ(1px)!important}
