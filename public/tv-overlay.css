@@ -4,10 +4,11 @@
 .discord-card>*,.widget>* ,.project-card>* ,.setup-card>* ,.game-card>* ,.steam-card>* ,.f1-hero>* ,.interest>* ,.bio-card>* ,.contact-card>* ,.stat>* ,.now-playing>* ,.f1-points>* ,.next-race>* ,.pill>* ,.small-action>* ,.np-bottom>*{position:relative;z-index:21}
 @media(max-width:700px){.discord-card::after,.widget::after,.project-card::after,.setup-card::after,.game-card::after,.steam-card::after,.f1-hero::after,.interest::after,.bio-card::after,.contact-card::after,.stat::after,.now-playing::after,.f1-points::after,.next-race::after,.pill::after,.small-action::after,.np-bottom::after{opacity:.08}}
 
-/* Grouping containers are intentionally invisible and must never receive the CRT overlay. */
-.music-list,.skill-group{background:transparent!important;background-image:none!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+/* Invisible grouping containers: no glass, no CRT, and no hover/TargetCursor hitbox. */
+.music-list,.skill-group{background:transparent!important;background-image:none!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;pointer-events:none!important;}
 .music-list::before,.music-list::after,.skill-group::before,.skill-group::after{content:none!important;display:none!important;background:none!important;box-shadow:none!important;filter:none!important;opacity:0!important;}
 .music-list>*,.skill-group>*{position:relative;z-index:auto;}
+.music-list .music-item,.skill-group .pill{pointer-events:auto!important;}
 
-/* The main stylesheet also adds a global body scanline layer. Disable it so only actual cards get the CRT treatment. */
+/* Disable the global page-wide scanline layer; CRT remains only on actual cards. */
 body::before{display:none!important;content:none!important;}
