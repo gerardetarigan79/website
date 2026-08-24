@@ -50,15 +50,15 @@ class AsciiFilter {
   constructor(renderer,options){this.renderer=renderer;this.options=options;this.domElement=document.createElement('pre');this.domElement.style.cssText='margin:0;user-select:none;padding:0;line-height:1em;text-align:left;position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;white-space:pre;';}
   render(source,time=0){
     const fontSize=this.options.fontSize;
-    // Use a deliberately wide particle field so the particles form a horizontal
-    // rectangle around the complete word instead of a square around its center.
+    // Wide and shallow field: particles surround the full word without forming a tall box.
     const fieldWidth=Math.max(source.width*1.45,source.height*2.8);
-    const fieldHeight=Math.max(source.height*1.05,1);
+    const fieldHeight=Math.max(source.height*0.72,1);
     const w=Math.max(1,Math.ceil(fieldWidth/fontSize)),h=Math.max(1,Math.ceil(fieldHeight/fontSize));
     this.buffer=this.buffer||document.createElement('canvas');this.buffer.width=w;this.buffer.height=h;
     const ctx=this.buffer.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,w,h);
     const sourceX=Math.max(0,(fieldWidth-source.width)/2);
-    ctx.drawImage(source,sourceX/fontSize,0,source.width/fontSize,source.height/fontSize);
+    const sourceY=Math.max(0,(fieldHeight-source.height)/2);
+    ctx.drawImage(source,sourceX/fontSize,sourceY/fontSize,source.width/fontSize,source.height/fontSize);
     const data=ctx.getImageData(0,0,w,h).data,chars=' .:-=+*#%@';let out='';
     const tick=Math.floor(time*7);
     for(let y=0;y<h;y++){
@@ -82,6 +82,8 @@ class AsciiFilter {
     this.domElement.textContent=out;
     this.domElement.style.width='145%';
     this.domElement.style.left='-22.5%';
+    this.domElement.style.height='72%';
+    this.domElement.style.top='14%';
   }
 }
 
