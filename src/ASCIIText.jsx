@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import './ASCIIText.css';
 
 const vertexShader = `
 varying vec2 vUv;
