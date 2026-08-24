@@ -1,9 +1,9 @@
 .site,.sidebar,.views{animation:mainReveal 1.35s cubic-bezier(.22,.75,.2,1) both;will-change:opacity,transform,filter}.site{animation-delay:.04s}.sidebar{animation-delay:0s}.views{animation-delay:.08s}@keyframes mainReveal{from{opacity:0;transform:translateY(18px) scale(.985);filter:blur(4px)}45%{opacity:.72}to{opacity:1;transform:none;filter:blur(0)}}
 
-/* Intro: keep the original staged reveal, but guarantee the content is visible. */
-.entry .entry-title{opacity:1;transform:none;animation:entryTitleIn .65s cubic-bezier(.22,.75,.2,1) both}.entry .entry-sub{opacity:1;transform:none;animation:entrySubIn .65s cubic-bezier(.22,.75,.2,1) .16s both}.entry .entry-line{width:180px;animation:entryLineIn .55s cubic-bezier(.22,.75,.2,1) .28s both}
-@keyframes entryTitleIn{from{opacity:0;transform:translateY(9px);filter:blur(3px)}to{opacity:1;transform:none;filter:blur(0)}}
-@keyframes entrySubIn{from{opacity:0;transform:translateY(6px);filter:blur(2px)}to{opacity:1;transform:none;filter:blur(0)}}
+/* Lightweight intro reveal: animate only opacity and transform for smooth text rendering. */
+.entry .entry-title{opacity:1;transform:translate3d(0,0,0);animation:entryTitleIn .55s cubic-bezier(.16,1,.3,1) both;will-change:opacity,transform}.entry .entry-sub{opacity:1;transform:translate3d(0,0,0);animation:entrySubIn .5s cubic-bezier(.16,1,.3,1) .12s both;will-change:opacity,transform}.entry .entry-line{width:180px;animation:entryLineIn .45s cubic-bezier(.16,1,.3,1) .22s both;will-change:width,opacity}
+@keyframes entryTitleIn{from{opacity:0;transform:translate3d(0,7px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes entrySubIn{from{opacity:0;transform:translate3d(0,5px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 @keyframes entryLineIn{from{width:0;opacity:0}to{width:180px;opacity:1}}
 
 .entry{transition:opacity .32s cubic-bezier(.4,0,.2,1),filter .32s cubic-bezier(.4,0,.2,1)}.entry.leaving{opacity:0;filter:blur(3px);pointer-events:none}
