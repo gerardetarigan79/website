@@ -54,11 +54,24 @@ class AsciiFilter {
     this.buffer=this.buffer||document.createElement('canvas');this.buffer.width=w;this.buffer.height=h;
     const ctx=this.buffer.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,w,h);ctx.drawImage(source,0,0,w,h);
     const data=ctx.getImageData(0,0,w,h).data,chars=' .:-=+*#%@';let out='';
+    const tick=Math.floor(time*7);
     for(let y=0;y<h;y++){
       for(let x=0;x<w;x++){
         const i=(y*w+x)*4,a=data[i+3]/255,lum=(data[i]*.299+data[i+1]*.587+data[i+2]*.114)/255;
         if(a>=.08){out+=chars[Math.min(chars.length-1,Math.floor(lum*(chars.length-1)))];}
-        else { out+=' '; }
+        else {
+          // Sparse deterministic particles across the ENTIRE Draven word width.
+          // They are generated from the same full text raster, so they cannot collapse into the center letters.
+          const hash=Math.sin((x*127.1+y*311.7+tick*17.3))*43758.5453;
+          const noise=hash-Math.floor(hash);
+          const edge=Math.min(x,w-1-x)/(Math.max(1,w)*0.5);
+          const vertical=Math.min(y,h-1-y)/(Math.max(1,h)*0.5);
+          const density=0.065+(1-Math.min(1,edge))*0.035+(1-Math.min(1,vertical))*0.015;
+          if(noise<density){
+            const index=Math.min(chars.length-1,Math.max(5,Math.floor(noise*chars.length*1.7)));
+            out+=chars[index];
+          } else out+=' ';
+        }
       }
       out+='\n';
     }
