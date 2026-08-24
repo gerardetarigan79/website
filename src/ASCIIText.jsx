@@ -52,7 +52,7 @@ class AsciiFilter {
     const fontSize=this.options.fontSize;
     // Wide and shallow field: particles surround the full word without forming a tall box.
     const fieldWidth=Math.max(source.width*1.45,source.height*2.8);
-    const fieldHeight=Math.max(source.height*0.72,1);
+    const fieldHeight=Math.max(source.height*0.58,1);
     const w=Math.max(1,Math.ceil(fieldWidth/fontSize)),h=Math.max(1,Math.ceil(fieldHeight/fontSize));
     this.buffer=this.buffer||document.createElement('canvas');this.buffer.width=w;this.buffer.height=h;
     const ctx=this.buffer.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,w,h);
@@ -82,8 +82,8 @@ class AsciiFilter {
     this.domElement.textContent=out;
     this.domElement.style.width='145%';
     this.domElement.style.left='-22.5%';
-    this.domElement.style.height='72%';
-    this.domElement.style.top='14%';
+    this.domElement.style.height='58%';
+    this.domElement.style.top='21%';
   }
 }
 
