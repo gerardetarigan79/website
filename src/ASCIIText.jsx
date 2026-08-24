@@ -66,7 +66,7 @@ class AsciiFilter {
   }
 }
 
-export default function ASCIIText({text='David!',asciiFontSize=4,textFontSize=360,textColor='#fdf9f3',planeBaseHeight=8,enableWaves=true}){
+export default function ASCIIText({text='David!',asciiFontSize=4,textFontSize=360,textColor='#fdf9f3',planeBaseHeight=14,enableWaves=true}){
   const containerRef=useRef(null),instanceRef=useRef(null);
   useEffect(()=>{
     const container=containerRef.current;if(!container)return;let cancelled=false;
