@@ -5,6 +5,7 @@ function styleViewCounter(){
   const match=el.textContent.match(/\d[\d,]*/);
   if(!match)return;
   const value=formatViewCount(match[0]);
+  el.classList.add("cursor-target");
   if(el.dataset.viewUiValue===value&&el.dataset.viewUiReady==="1")return;
   el.dataset.viewUiValue=value;
   el.dataset.viewUiReady="1";
