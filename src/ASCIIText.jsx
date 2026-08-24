@@ -50,15 +50,11 @@ class AsciiFilter {
   constructor(renderer,options){this.renderer=renderer;this.options=options;this.domElement=document.createElement('pre');this.domElement.style.cssText='margin:0;user-select:none;padding:0;line-height:1em;text-align:left;position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;white-space:pre;';}
   render(source){
     const fontSize=this.options.fontSize;
-    const fieldWidth=Math.max(source.width*1.45,source.height*2.8);
-    const fieldHeight=Math.max(source.height*0.58,1);
-    const w=Math.max(1,Math.ceil(fieldWidth/fontSize)),h=Math.max(1,Math.ceil(fieldHeight/fontSize));
+    const w=Math.max(1,Math.ceil(source.width/fontSize)),h=Math.max(1,Math.ceil(source.height/fontSize));
     this.buffer=this.buffer||document.createElement('canvas');this.buffer.width=w;this.buffer.height=h;
     const ctx=this.buffer.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,w,h);
-    const sourceX=Math.max(0,(fieldWidth-source.width)/2);
-    const sourceY=Math.max(0,(fieldHeight-source.height)/2);
-    ctx.drawImage(source,sourceX/fontSize,sourceY/fontSize,source.width/fontSize,source.height/fontSize);
-    const data=ctx.getImageData(0,0,w,h).data,chars=' .:-=+*#%@';let out='';
+    ctx.drawImage(source,0,0,w,h);
+    const data=ctx.getImageData(0,0,w,h).data,chars=' .:-=+*';let out='';
     for(let y=0;y<h;y++){
       for(let x=0;x<w;x++){
         const i=(y*w+x)*4,a=data[i+3]/255,lum=(data[i]*.299+data[i+1]*.587+data[i+2]*.114)/255;
@@ -67,10 +63,10 @@ class AsciiFilter {
       out+='\n';
     }
     this.domElement.textContent=out;
-    this.domElement.style.width='145%';
-    this.domElement.style.left='-22.5%';
-    this.domElement.style.height='58%';
-    this.domElement.style.top='21%';
+    this.domElement.style.width='100%';
+    this.domElement.style.left='0';
+    this.domElement.style.height='100%';
+    this.domElement.style.top='0';
   }
 }
 
