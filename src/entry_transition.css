@@ -1,3 +1,7 @@
 .site,.sidebar,.views{animation:mainReveal 1.35s cubic-bezier(.22,.75,.2,1) both;will-change:opacity,transform,filter}.site{animation-delay:.04s}.sidebar{animation-delay:0s}.views{animation-delay:.08s}@keyframes mainReveal{from{opacity:0;transform:translateY(18px) scale(.985);filter:blur(4px)}45%{opacity:.72}to{opacity:1;transform:none;filter:blur(0)}}
-.entry .entry-title{opacity:1!important;transform:none!important}.entry .entry-sub{opacity:1!important;transform:none!important}.entry .entry-line{width:180px!important}
-html,body,body *{cursor:none!important}@media(prefers-reduced-motion:reduce){.site,.sidebar,.views{animation:none}}
+
+/* Restore the intro's staged reveal and add a smooth fade into the site. */
+.entry{transition:opacity .7s cubic-bezier(.22,.75,.2,1),filter .7s cubic-bezier(.22,.75,.2,1)}
+.entry.leaving{opacity:0;filter:blur(4px);pointer-events:none}
+
+html,body,body *{cursor:none!important}@media(prefers-reduced-motion:reduce){.site,.sidebar,.views{animation:none}.entry{transition:none}.entry.leaving{filter:none}}
