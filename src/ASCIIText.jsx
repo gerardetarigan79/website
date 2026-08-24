@@ -48,9 +48,8 @@ class CanvasTxt {
 
 class AsciiFilter {
   constructor(renderer,options){this.renderer=renderer;this.options=options;this.domElement=document.createElement('pre');this.domElement.style.cssText='margin:0;user-select:none;padding:0;line-height:1em;text-align:left;position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;white-space:pre;';}
-  render(source,time=0){
+  render(source){
     const fontSize=this.options.fontSize;
-    // Wide and shallow field: particles surround the full word without forming a tall box.
     const fieldWidth=Math.max(source.width*1.45,source.height*2.8);
     const fieldHeight=Math.max(source.height*0.58,1);
     const w=Math.max(1,Math.ceil(fieldWidth/fontSize)),h=Math.max(1,Math.ceil(fieldHeight/fontSize));
@@ -60,22 +59,10 @@ class AsciiFilter {
     const sourceY=Math.max(0,(fieldHeight-source.height)/2);
     ctx.drawImage(source,sourceX/fontSize,sourceY/fontSize,source.width/fontSize,source.height/fontSize);
     const data=ctx.getImageData(0,0,w,h).data,chars=' .:-=+*#%@';let out='';
-    const tick=Math.floor(time*7);
     for(let y=0;y<h;y++){
       for(let x=0;x<w;x++){
         const i=(y*w+x)*4,a=data[i+3]/255,lum=(data[i]*.299+data[i+1]*.587+data[i+2]*.114)/255;
-        if(a>=.08){out+=chars[Math.min(chars.length-1,Math.floor(lum*(chars.length-1)))];}
-        else {
-          const hash=Math.sin((x*127.1+y*311.7+tick*17.3))*43758.5453;
-          const noise=hash-Math.floor(hash);
-          const edge=Math.min(x,w-1-x)/(Math.max(1,w)*0.5);
-          const vertical=Math.min(y,h-1-y)/(Math.max(1,h)*0.5);
-          const density=0.065+(1-Math.min(1,edge))*0.035+(1-Math.min(1,vertical))*0.015;
-          if(noise<density){
-            const index=Math.min(chars.length-1,Math.max(5,Math.floor(noise*chars.length*1.7)));
-            out+=chars[index];
-          } else out+=' ';
-        }
+        out += a>=0.08 ? chars[Math.min(chars.length-1,Math.floor(lum*(chars.length-1)))] : ' ';
       }
       out+='\n';
     }
@@ -105,7 +92,7 @@ export default function ASCIIText({text='David!',asciiFontSize=4,textFontSize=36
       const resize=()=>{const r=container.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix();};
       const mouse={x:0,y:0},onMove=e=>{const r=container.getBoundingClientRect();mouse.x=(e.clientX-r.left)/Math.max(1,r.width);mouse.y=1-(e.clientY-r.top)/Math.max(1,r.height);material.uniforms.uMouse.value.set(mouse.x,mouse.y);};
       const ro=new ResizeObserver(resize);ro.observe(container);container.addEventListener('mousemove',onMove);container.addEventListener('touchmove',e=>{const t=e.touches?.[0];if(t)onMove(t);},{passive:true});
-      let frame=0;const loop=t=>{if(cancelled)return;material.uniforms.uTime.value=t*.001;mesh.rotation.y+=((mouse.x-.5)*.08-mesh.rotation.y)*.04;mesh.rotation.x+=((-(mouse.y-.5))*.06-mesh.rotation.x)*.04;renderer.render(scene,camera);filter.render(renderer.domElement,t*.001);frame=requestAnimationFrame(loop);};frame=requestAnimationFrame(loop);
+      let frame=0;const loop=t=>{if(cancelled)return;material.uniforms.uTime.value=t*.001;mesh.rotation.y+=((mouse.x-.5)*.08-mesh.rotation.y)*.04;mesh.rotation.x+=((-(mouse.y-.5))*.06-mesh.rotation.x)*.04;renderer.render(scene,camera);filter.render(renderer.domElement);frame=requestAnimationFrame(loop);};frame=requestAnimationFrame(loop);
       instanceRef.current={dispose(){cancelAnimationFrame(frame);ro.disconnect();container.removeEventListener('mousemove',onMove);geometry.dispose();material.dispose();texture.dispose();renderer.dispose();renderer.forceContextLoss();}};
     };init();return()=>{cancelled=true;instanceRef.current?.dispose();instanceRef.current=null;};
   },[text,asciiFontSize,textFontSize,textColor,planeBaseHeight,enableWaves]);
