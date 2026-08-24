@@ -58,17 +58,7 @@ class AsciiFilter {
       for(let x=0;x<w;x++){
         const i=(y*w+x)*4,a=data[i+3]/255,lum=(data[i]*.299+data[i+1]*.587+data[i+2]*.114)/255;
         if(a>=.08){out+=chars[Math.min(chars.length-1,Math.floor(lum*(chars.length-1)))];}
-        else {
-          const dx=x-w/2,dy=y-h/2,d=Math.sqrt((dx/(w*.5))**2+(dy/(h*.5))**2);
-          const driftX=Math.sin(time*0.9+y*0.45)*1.8;
-          const driftY=Math.cos(time*0.75+x*0.38)*1.4;
-          const px=x+driftX,py=y+driftY;
-          const hash=Math.sin(px*12.9898+py*78.233+time*2.7)*43758.5453;
-          const noise=hash-Math.floor(hash);
-          const pulse=(Math.sin(time*1.8+x*0.22+y*0.31)+1)*0.5;
-          const particleChance=0.965-pulse*0.045;
-          out+=(d>0.52&&d<0.98&&noise>particleChance)?chars[Math.floor(noise*chars.length)%chars.length]:' ';
-        }
+        else { out+=' '; }
       }
       out+='\n';
     }
@@ -76,7 +66,7 @@ class AsciiFilter {
   }
 }
 
-export default function ASCIIText({text='David!',asciiFontSize=4,textFontSize=280,textColor='#fdf9f3',planeBaseHeight=8,enableWaves=true}){
+export default function ASCIIText({text='David!',asciiFontSize=4,textFontSize=360,textColor='#fdf9f3',planeBaseHeight=8,enableWaves=true}){
   const containerRef=useRef(null),instanceRef=useRef(null);
   useEffect(()=>{
     const container=containerRef.current;if(!container)return;let cancelled=false;
