@@ -7,16 +7,21 @@ import './ASCIIText.css';
 const vertexShader = `
 varying vec2 vUv;
 uniform float uTime;
-uniform float mouse;
+uniform vec2 uMouse;
 uniform float uEnableWaves;
 void main() {
  vUv = uv;
  float time = uTime * 5.;
  float waveFactor = uEnableWaves;
  vec3 transformed = position;
- transformed.x += sin(time + position.y) * 0.5 * waveFactor;
- transformed.y += cos(time + position.z) * 0.15 * waveFactor;
- transformed.z += sin(time + position.x) * waveFactor;
+ float dist = distance(uv, uMouse * 0.5 + 0.5);
+ float influence = smoothstep(0.65, 0.0, dist);
+ transformed.z += sin(time + position.x * 2.0 + position.y) * 0.28 * waveFactor;
+ transformed.x += sin(time * 0.8 + position.y * 2.0) * 0.18 * waveFactor;
+ transformed.y += cos(time * 0.7 + position.x * 2.0) * 0.12 * waveFactor;
+ transformed.z += influence * sin(time * 2.0 + dist * 18.0) * 1.2 * waveFactor;
+ transformed.x += (uMouse.x * 0.5) * influence * waveFactor;
+ transformed.y -= (uMouse.y * 0.35) * influence * waveFactor;
  gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
 }`;
 
@@ -43,30 +48,49 @@ class CanvasTxt {
 
 class AsciiFilter {
   constructor(renderer,options){this.renderer=renderer;this.options=options;this.domElement=document.createElement('pre');this.domElement.style.cssText='margin:0;user-select:none;padding:0;line-height:1em;text-align:left;position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;white-space:pre;';}
-  render(source){const fontSize=this.options.fontSize;const w=Math.max(1,Math.ceil(source.width/fontSize)),h=Math.max(1,Math.ceil(source.height/fontSize));this.buffer=this.buffer||document.createElement('canvas');this.buffer.width=w;this.buffer.height=h;const ctx=this.buffer.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,w,h);ctx.drawImage(source,0,0,w,h);const data=ctx.getImageData(0,0,w,h).data,chars=' .:-=+*#%@';let out='';for(let y=0;y<h;y++){for(let x=0;x<w;x++){const i=(y*w+x)*4,a=data[i+3]/255,lum=(data[i]*.299+data[i+1]*.587+data[i+2]*.114)/255;out+=a<.08?' ':chars[Math.min(chars.length-1,Math.floor(lum*(chars.length-1)))];}out+='\n';}this.domElement.textContent=out;}
+  render(source){
+    const fontSize=this.options.fontSize;
+    const w=Math.max(1,Math.ceil(source.width/fontSize)),h=Math.max(1,Math.ceil(source.height/fontSize));
+    this.buffer=this.buffer||document.createElement('canvas');this.buffer.width=w;this.buffer.height=h;
+    const ctx=this.buffer.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,w,h);ctx.drawImage(source,0,0,w,h);
+    const data=ctx.getImageData(0,0,w,h).data,chars=' .:-=+*#%@';let out='';
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const i=(y*w+x)*4,a=data[i+3]/255,lum=(data[i]*.299+data[i+1]*.587+data[i+2]*.114)/255;
+        if(a>=.08){out+=chars[Math.min(chars.length-1,Math.floor(lum*(chars.length-1)))];}
+        else {
+          const dx=x-w/2,dy=y-h/2,d=Math.sqrt((dx/(w*.5))**2+(dy/(h*.5))**2);
+          const hash=Math.sin(x*12.9898+y*78.233)*43758.5453;
+          const noise=hash-Math.floor(hash);
+          out+=(d>0.48&&d<0.92&&noise>0.965)?chars[Math.floor(noise*chars.length)%chars.length]:' ';
+        }
+      }
+      out+='\n';
+    }
+    this.domElement.textContent=out;
+  }
 }
 
-export default function ASCIIText({text='David!',asciiFontSize=8,textFontSize=200,textColor='#fdf9f3',planeBaseHeight=8,enableWaves=true}){
+export default function ASCIIText({text='David!',asciiFontSize=4,textFontSize=200,textColor='#fdf9f3',planeBaseHeight=8,enableWaves=true}){
   const containerRef=useRef(null),instanceRef=useRef(null);
   useEffect(()=>{
-    const container=containerRef.current;if(!container)return;
-    let cancelled=false;
+    const container=containerRef.current;if(!container)return;let cancelled=false;
     const init=async()=>{
       await new Promise(r=>requestAnimationFrame(r));if(cancelled)return;
       const rect=container.getBoundingClientRect(),width=Math.max(1,rect.width),height=Math.max(1,rect.height);
       const renderer=new THREE.WebGLRenderer({antialias:false,alpha:true});renderer.setPixelRatio(1);renderer.setClearColor(0x000000,0);container.replaceChildren(renderer.domElement);
       const textCanvas=new CanvasTxt(text,{fontSize:textFontSize,fontFamily:'IBM Plex Mono, monospace',color:textColor});textCanvas.context.font=`${textFontSize}px IBM Plex Mono, monospace`;textCanvas.resize();textCanvas.render();
       const texture=new THREE.CanvasTexture(textCanvas.texture);texture.minFilter=THREE.NearestFilter;texture.magFilter=THREE.NearestFilter;
-      const aspect=textCanvas.width/textCanvas.height,geometry=new THREE.PlaneGeometry(planeBaseHeight*aspect,planeBaseHeight,36,36);
-      const material=new THREE.ShaderMaterial({vertexShader,fragmentShader,transparent:true,uniforms:{uTime:{value:0},uTexture:{value:texture},uEnableWaves:{value:enableWaves?1:0}}});
+      const aspect=textCanvas.width/textCanvas.height,geometry=new THREE.PlaneGeometry(planeBaseHeight*aspect,planeBaseHeight,64,64);
+      const material=new THREE.ShaderMaterial({vertexShader,fragmentShader,transparent:true,uniforms:{uTime:{value:0},uTexture:{value:texture},uEnableWaves:{value:enableWaves?1:0},uMouse:{value:new THREE.Vector2(.5,.5)}}});
       const mesh=new THREE.Mesh(geometry,material),scene=new THREE.Scene();scene.add(mesh);
       const camera=new THREE.PerspectiveCamera(45,width/height,1,1000);camera.position.z=30;
       const filter=new AsciiFilter(renderer,{fontSize:asciiFontSize});container.appendChild(filter.domElement);renderer.setSize(width,height,false);
       const resize=()=>{const r=container.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix();};
-      const mouse={x:0,y:0},onMove=e=>{const r=container.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width-.5;mouse.y=(e.clientY-r.top)/r.height-.5;};
-      const ro=new ResizeObserver(resize);ro.observe(container);container.addEventListener('mousemove',onMove);container.addEventListener('touchmove',onMove,{passive:true});
-      let frame=0;const loop=t=>{if(cancelled)return;material.uniforms.uTime.value=t*.001;mesh.rotation.y+=((mouse.x*.12)-mesh.rotation.y)*.04;mesh.rotation.x+=((-mouse.y*.08)-mesh.rotation.x)*.04;renderer.render(scene,camera);filter.render(renderer.domElement);frame=requestAnimationFrame(loop);};frame=requestAnimationFrame(loop);
-      instanceRef.current={dispose(){cancelAnimationFrame(frame);ro.disconnect();container.removeEventListener('mousemove',onMove);container.removeEventListener('touchmove',onMove);geometry.dispose();material.dispose();texture.dispose();renderer.dispose();renderer.forceContextLoss();}};
+      const mouse={x:0,y:0},onMove=e=>{const r=container.getBoundingClientRect();mouse.x=(e.clientX-r.left)/Math.max(1,r.width);mouse.y=1-(e.clientY-r.top)/Math.max(1,r.height);material.uniforms.uMouse.value.set(mouse.x,mouse.y);};
+      const ro=new ResizeObserver(resize);ro.observe(container);container.addEventListener('mousemove',onMove);container.addEventListener('touchmove',e=>{const t=e.touches?.[0];if(t)onMove(t);},{passive:true});
+      let frame=0;const loop=t=>{if(cancelled)return;material.uniforms.uTime.value=t*.001;mesh.rotation.y+=((mouse.x-.5)*.08-mesh.rotation.y)*.04;mesh.rotation.x+=((-(mouse.y-.5))*.06-mesh.rotation.x)*.04;renderer.render(scene,camera);filter.render(renderer.domElement);frame=requestAnimationFrame(loop);};frame=requestAnimationFrame(loop);
+      instanceRef.current={dispose(){cancelAnimationFrame(frame);ro.disconnect();container.removeEventListener('mousemove',onMove);geometry.dispose();material.dispose();texture.dispose();renderer.dispose();renderer.forceContextLoss();}};
     };init();return()=>{cancelled=true;instanceRef.current?.dispose();instanceRef.current=null;};
   },[text,asciiFontSize,textFontSize,textColor,planeBaseHeight,enableWaves]);
   return <div ref={containerRef} className="ascii-text-container" aria-label={text}/>;
