@@ -1,4 +1,4 @@
-/* More transparent glass: background effects remain clearly visible through every card. */
+/* Shared translucent glass UI */
 .discord-card,.widget,.project-card,.setup-card,.game-card,.steam-card,.f1-hero,.interest,.bio-card,.contact-card,.stat,.next-race,.f1-points,.game-visual,.doxa-preview{background-color:rgba(15,15,20,.24)!important;background-image:none!important;backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);border-color:rgba(255,255,255,.09)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 18px 55px rgba(0,0,0,.14)}
 .discord-card:hover,.widget:hover,.project-card:hover,.setup-card:hover,.game-card:hover,.steam-card:hover,.f1-hero:hover,.interest:hover,.bio-card:hover,.contact-card:hover{background-color:rgba(20,17,25,.30)!important;border-color:rgba(106,2,151,.26)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 14px 55px rgba(106,2,151,.09),0 8px 30px rgba(0,0,0,.16)}
 .discord-card::after,.widget::after,.project-card::after,.setup-card::after,.game-card::after,.steam-card::after,.f1-hero::after,.interest::after,.bio-card::after,.contact-card::after,.stat::after,.next-race::after,.f1-points::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;opacity:.07;background:repeating-linear-gradient(0deg,rgba(255,255,255,.09) 0,rgba(255,255,255,.09) 1px,transparent 1px,transparent 4px);mix-blend-mode:screen}
@@ -11,3 +11,15 @@
 
 /* Recent Plays: precisely center the CD spindle hole without touching the spin or tilt transforms. */
 #music .record-disc::after{left:50%!important;top:50%!important;margin:0!important;transform:translate(-50%,-50%) translateZ(1px)!important}
+
+/* F1 page: reinforce the same glassmorphism treatment on every dashboard card. */
+#f1 .f1-hero,
+#f1 .interest,
+#f1 .f1-points,
+#f1 .next-race{background:rgba(15,15,20,.24)!important;background-image:none!important;backdrop-filter:blur(12px) saturate(120%);-webkit-backdrop-filter:blur(12px) saturate(120%);border:1px solid rgba(255,255,255,.09)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 55px rgba(0,0,0,.16)!important}
+#f1 .f1-hero:hover,
+#f1 .interest:hover,
+#f1 .f1-points:hover,
+#f1 .next-race:hover{background:rgba(20,17,25,.30)!important;border-color:rgba(106,2,151,.26)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 14px 55px rgba(106,2,151,.09),0 8px 30px rgba(0,0,0,.16)!important}
+#f1 .interest>span{background:rgba(37,20,124,.18)!important;border-color:rgba(147,51,234,.28)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#f1 .bar{background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.05)}
