@@ -50,9 +50,15 @@ class AsciiFilter {
   constructor(renderer,options){this.renderer=renderer;this.options=options;this.domElement=document.createElement('pre');this.domElement.style.cssText='margin:0;user-select:none;padding:0;line-height:1em;text-align:left;position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;white-space:pre;';}
   render(source,time=0){
     const fontSize=this.options.fontSize;
-    const w=Math.max(1,Math.ceil(source.width/fontSize)),h=Math.max(1,Math.ceil(source.height/fontSize));
+    // Use a deliberately wide particle field so the particles form a horizontal
+    // rectangle around the complete word instead of a square around its center.
+    const fieldWidth=Math.max(source.width*1.45,source.height*2.8);
+    const fieldHeight=Math.max(source.height*1.05,1);
+    const w=Math.max(1,Math.ceil(fieldWidth/fontSize)),h=Math.max(1,Math.ceil(fieldHeight/fontSize));
     this.buffer=this.buffer||document.createElement('canvas');this.buffer.width=w;this.buffer.height=h;
-    const ctx=this.buffer.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,w,h);ctx.drawImage(source,0,0,w,h);
+    const ctx=this.buffer.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,w,h);
+    const sourceX=Math.max(0,(fieldWidth-source.width)/2);
+    ctx.drawImage(source,sourceX/fontSize,0,source.width/fontSize,source.height/fontSize);
     const data=ctx.getImageData(0,0,w,h).data,chars=' .:-=+*#%@';let out='';
     const tick=Math.floor(time*7);
     for(let y=0;y<h;y++){
@@ -60,8 +66,6 @@ class AsciiFilter {
         const i=(y*w+x)*4,a=data[i+3]/255,lum=(data[i]*.299+data[i+1]*.587+data[i+2]*.114)/255;
         if(a>=.08){out+=chars[Math.min(chars.length-1,Math.floor(lum*(chars.length-1)))];}
         else {
-          // Sparse deterministic particles across the ENTIRE Draven word width.
-          // They are generated from the same full text raster, so they cannot collapse into the center letters.
           const hash=Math.sin((x*127.1+y*311.7+tick*17.3))*43758.5453;
           const noise=hash-Math.floor(hash);
           const edge=Math.min(x,w-1-x)/(Math.max(1,w)*0.5);
@@ -76,6 +80,8 @@ class AsciiFilter {
       out+='\n';
     }
     this.domElement.textContent=out;
+    this.domElement.style.width='145%';
+    this.domElement.style.left='-22.5%';
   }
 }
 
