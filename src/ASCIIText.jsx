@@ -41,14 +41,14 @@ void main() {
 
 class CanvasTxt {
   constructor(txt, opts) { this.txt = txt; this.opts = opts; this.canvas = document.createElement('canvas'); this.context = this.canvas.getContext('2d'); }
-  resize() { const m = this.context.measureText(this.txt); this.canvas.width = Math.max(1, Math.ceil(m.width + 20)); this.canvas.height = Math.max(1, Math.ceil(this.opts.fontSize * 1.35)); }
+  resize() { this.context.font = `${this.opts.fontSize}px ${this.opts.fontFamily}`; const m = this.context.measureText(this.txt); this.canvas.width = Math.max(1, Math.ceil(m.width + 20)); this.canvas.height = Math.max(1, Math.ceil(this.opts.fontSize * 1.35)); }
   render() { const { fontSize, fontFamily, color } = this.opts; this.context.clearRect(0,0,this.canvas.width,this.canvas.height); this.context.font = `${fontSize}px ${fontFamily}`; this.context.fillStyle = color; this.context.textBaseline = 'alphabetic'; const metrics = this.context.measureText(this.txt); this.context.fillText(this.txt,10,10+metrics.actualBoundingBoxAscent); }
   get width(){return this.canvas.width;} get height(){return this.canvas.height;} get texture(){return this.canvas;}
 }
 
 class AsciiFilter {
   constructor(renderer,options){this.renderer=renderer;this.options=options;this.domElement=document.createElement('pre');this.domElement.style.cssText='margin:0;user-select:none;padding:0;line-height:1em;text-align:left;position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;white-space:pre;';}
-  render(source){
+  render(source,time=0){
     const fontSize=this.options.fontSize;
     const w=Math.max(1,Math.ceil(source.width/fontSize)),h=Math.max(1,Math.ceil(source.height/fontSize));
     this.buffer=this.buffer||document.createElement('canvas');this.buffer.width=w;this.buffer.height=h;
@@ -60,9 +60,14 @@ class AsciiFilter {
         if(a>=.08){out+=chars[Math.min(chars.length-1,Math.floor(lum*(chars.length-1)))];}
         else {
           const dx=x-w/2,dy=y-h/2,d=Math.sqrt((dx/(w*.5))**2+(dy/(h*.5))**2);
-          const hash=Math.sin(x*12.9898+y*78.233)*43758.5453;
+          const driftX=Math.sin(time*0.9+y*0.45)*1.8;
+          const driftY=Math.cos(time*0.75+x*0.38)*1.4;
+          const px=x+driftX,py=y+driftY;
+          const hash=Math.sin(px*12.9898+py*78.233+time*2.7)*43758.5453;
           const noise=hash-Math.floor(hash);
-          out+=(d>0.48&&d<0.92&&noise>0.965)?chars[Math.floor(noise*chars.length)%chars.length]:' ';
+          const pulse=(Math.sin(time*1.8+x*0.22+y*0.31)+1)*0.5;
+          const particleChance=0.965-pulse*0.045;
+          out+=(d>0.52&&d<0.98&&noise>particleChance)?chars[Math.floor(noise*chars.length)%chars.length]:' ';
         }
       }
       out+='\n';
@@ -71,7 +76,7 @@ class AsciiFilter {
   }
 }
 
-export default function ASCIIText({text='David!',asciiFontSize=4,textFontSize=200,textColor='#fdf9f3',planeBaseHeight=8,enableWaves=true}){
+export default function ASCIIText({text='David!',asciiFontSize=4,textFontSize=280,textColor='#fdf9f3',planeBaseHeight=8,enableWaves=true}){
   const containerRef=useRef(null),instanceRef=useRef(null);
   useEffect(()=>{
     const container=containerRef.current;if(!container)return;let cancelled=false;
@@ -89,7 +94,7 @@ export default function ASCIIText({text='David!',asciiFontSize=4,textFontSize=20
       const resize=()=>{const r=container.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix();};
       const mouse={x:0,y:0},onMove=e=>{const r=container.getBoundingClientRect();mouse.x=(e.clientX-r.left)/Math.max(1,r.width);mouse.y=1-(e.clientY-r.top)/Math.max(1,r.height);material.uniforms.uMouse.value.set(mouse.x,mouse.y);};
       const ro=new ResizeObserver(resize);ro.observe(container);container.addEventListener('mousemove',onMove);container.addEventListener('touchmove',e=>{const t=e.touches?.[0];if(t)onMove(t);},{passive:true});
-      let frame=0;const loop=t=>{if(cancelled)return;material.uniforms.uTime.value=t*.001;mesh.rotation.y+=((mouse.x-.5)*.08-mesh.rotation.y)*.04;mesh.rotation.x+=((-(mouse.y-.5))*.06-mesh.rotation.x)*.04;renderer.render(scene,camera);filter.render(renderer.domElement);frame=requestAnimationFrame(loop);};frame=requestAnimationFrame(loop);
+      let frame=0;const loop=t=>{if(cancelled)return;material.uniforms.uTime.value=t*.001;mesh.rotation.y+=((mouse.x-.5)*.08-mesh.rotation.y)*.04;mesh.rotation.x+=((-(mouse.y-.5))*.06-mesh.rotation.x)*.04;renderer.render(scene,camera);filter.render(renderer.domElement,t*.001);frame=requestAnimationFrame(loop);};frame=requestAnimationFrame(loop);
       instanceRef.current={dispose(){cancelAnimationFrame(frame);ro.disconnect();container.removeEventListener('mousemove',onMove);geometry.dispose();material.dispose();texture.dispose();renderer.dispose();renderer.forceContextLoss();}};
     };init();return()=>{cancelled=true;instanceRef.current?.dispose();instanceRef.current=null;};
   },[text,asciiFontSize,textFontSize,textColor,planeBaseHeight,enableWaves]);
