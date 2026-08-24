@@ -13,6 +13,24 @@
 </head>
 <body>
 <div id="root"></div>
+<script>
+(() => {
+  let replaying = false;
+  document.addEventListener('click', (event) => {
+    if (replaying) return;
+    const entry = event.target.closest?.('.entry');
+    if (!entry || entry.classList.contains('leaving')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    entry.classList.add('leaving');
+    window.setTimeout(() => {
+      replaying = true;
+      entry.click();
+      replaying = false;
+    }, 700);
+  }, true);
+})();
+</script>
 <script type="module" src="/src/react_dom_safety.js"></script>
 <script type="module" src="/src/f1_api_compat.js"></script>
 <script type="module" src="/src/main.jsx"></script>
