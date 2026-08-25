@@ -33,6 +33,18 @@ export default function RecentPlaysCarousel({tracks = []}) {
 
   const move = (delta) => setActive((value) => clamp(value + delta));
 
+  const openLastFm = (event, url) => {
+    if (suppressClick.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClick.current = false;
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   const onDown = (event) => {
     drag.current = {
       startX: event.clientX,
@@ -52,8 +64,7 @@ export default function RecentPlaysCarousel({tracks = []}) {
     drag.current.distance += Math.abs(delta);
     drag.current.lastX = event.clientX;
 
-    // Keep the carousel deliberately less sensitive: require about 110px
-    // of accumulated horizontal movement before advancing one track.
+    // Require a deliberately large drag before advancing one track.
     if (drag.current.distance >= 110) {
       move(drag.current.lastX < drag.current.startX ? 1 : -1);
       drag.current.distance = 0;
@@ -69,14 +80,6 @@ export default function RecentPlaysCarousel({tracks = []}) {
     }
     setDragging(false);
     event.currentTarget.releasePointerCapture?.(event.pointerId);
-  };
-
-  const onCardClick = (event) => {
-    if (suppressClick.current) {
-      event.preventDefault();
-      event.stopPropagation();
-      suppressClick.current = false;
-    }
   };
 
   const onKeyDown = (event) => {
@@ -122,7 +125,9 @@ export default function RecentPlaysCarousel({tracks = []}) {
           </article>;
         }
 
-        const trackUrl = item.track?.url || `https://www.last.fm/user/drva7/library/music/${encodeURIComponent(item.artist)}/${encodeURIComponent(item.track?.name || "")}`;
+        // Last.fm supplies a canonical track URL in the API response.
+        // Use that URL directly instead of constructing a potentially invalid library URL.
+        const trackUrl = item.track?.url || `https://www.last.fm/user/drva7/music/${encodeURIComponent(item.artist)}/_/${encodeURIComponent(item.track?.name || "")}`;
 
         return <a
           className={`recent-card${activeCard ? " is-active" : ""}`}
@@ -130,10 +135,9 @@ export default function RecentPlaysCarousel({tracks = []}) {
           key={item.key}
           href={trackUrl}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           aria-label={`${item.track?.name || "Unknown track"} by ${item.artist} on Last.fm`}
-          aria-hidden={!activeCard}
-          onClick={onCardClick}
+          onClick={(event) => openLastFm(event, trackUrl)}
           draggable={false}
         >
           <div className="recent-art-wrap">
