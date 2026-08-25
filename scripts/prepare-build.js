@@ -18,4 +18,13 @@ createRoot(document.getElementById("root")).render(<App/>);`;
 
 source = source.slice(0, start) + replacement + "\n";
 fs.writeFileSync(path, source);
-console.log("prepare-build: preloads the main site behind the intro and fades the intro out after the site has had time to mount");
+
+const stylesPath = "src/styles.css";
+let styles = fs.readFileSync(stylesPath, "utf8");
+const preloadStyles = "\n/* Intro transition: keep the fully mounted site underneath while the entry screen fades away. */\n.entry{transition:opacity .7s ease,visibility .7s ease}.entry.exiting{opacity:0;visibility:hidden;pointer-events:none}\n";
+if (!styles.includes("/* Intro transition: keep the fully mounted site underneath")) {
+  styles += preloadStyles;
+  fs.writeFileSync(stylesPath, styles);
+}
+
+console.log("prepare-build: main site mounts immediately behind the intro and is revealed after the intro fade");
