@@ -74,11 +74,8 @@ export default function RecentPlaysCarousel({tracks = []}) {
 
   return <div className={`rpc${dragging ? " is-dragging" : ""}`} tabIndex={0} onKeyDown={onKeyDown} aria-label="Recent plays carousel">
     <style>{`
-      .rpc{position:relative;width:100%;padding:10px 0 4px;overflow:hidden;isolation:isolate;outline:none}
-      .rpc::before,.rpc::after{content:"";position:absolute;top:0;bottom:0;width:18%;z-index:50;pointer-events:none}
-      .rpc::before{left:0;background:linear-gradient(90deg,var(--bg,#070709) 0%,rgba(7,7,9,.86) 28%,transparent 100%)}
-      .rpc::after{right:0;background:linear-gradient(270deg,var(--bg,#070709) 0%,rgba(7,7,9,.86) 28%,transparent 100%)}
-      .rpc-track{position:relative;height:390px;perspective:1100px;transform-style:preserve-3d;touch-action:pan-y;overflow:visible}
+      .rpc{position:relative;width:100%;padding:10px 0 4px;overflow:hidden;isolation:isolate;outline:none;mask-image:linear-gradient(to right,transparent 0%,black 15%,black 85%,transparent 100%);-webkit-mask-image:linear-gradient(to right,transparent 0%,black 15%,black 85%,transparent 100%)}
+      .rpc-track{position:relative;height:390px;perspective:1100px;transform-style:preserve-3d;overflow:visible}
       .rpc-card{position:absolute;left:50%;top:0;width:280px;text-align:center;transform-style:preserve-3d;transition:transform .42s cubic-bezier(.22,.75,.2,1),opacity .32s ease;pointer-events:none}
       .rpc-drag-zone{width:280px;height:280px;position:relative;margin:0 auto;pointer-events:auto;cursor:grab;touch-action:none}
       .rpc.is-dragging .rpc-drag-zone{cursor:grabbing}
