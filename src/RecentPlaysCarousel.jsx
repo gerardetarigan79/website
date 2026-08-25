@@ -70,6 +70,18 @@ export default function RecentPlaysCarousel({tracks = []}) {
     const state = drag.current;
     if (!state.active || state.pointerId !== event.pointerId) return;
 
+    // If the pointer leaves the carousel's actual box while dragging, end the
+    // gesture immediately. This prevents document-level pointer events from
+    // making the carousel keep following the mouse after the button is released.
+    const rect = event.currentTarget.getBoundingClientRect();
+    const inside = event.clientX >= rect.left && event.clientX <= rect.right &&
+      event.clientY >= rect.top && event.clientY <= rect.bottom;
+    if (!inside) {
+      suppressClick.current = state.moved;
+      resetDrag();
+      return;
+    }
+
     const delta = event.clientX - state.lastX;
     if (!delta) return;
 
