@@ -23,7 +23,7 @@ export default function RecentPlaysCarousel({tracks = []}) {
 
   const [active, setActive] = useState(items.length ? 1 : 0);
   const [dragging, setDragging] = useState(false);
-  const drag = useRef({pointerId: null, startX: 0, lastX: 0, distance: 0, moved: false, active: false});
+  const drag = useRef({pointerId: null, startX: 0, lastX: 0, distance: 0, active: false});
   const clamp = (value) => Math.min(Math.max(value, 0), sequence.length - 1);
 
   useEffect(() => {
@@ -45,7 +45,9 @@ export default function RecentPlaysCarousel({tracks = []}) {
     setDragging(false);
   };
 
-  const onDown = (event) => {
+  // Dragging starts ONLY from the CD area. The track information below it is
+  // deliberately outside this interaction so it can behave like a normal link.
+  const onCdPointerDown = (event) => {
     if (event.button !== 0 && event.pointerType === "mouse") return;
 
     try {
@@ -57,13 +59,12 @@ export default function RecentPlaysCarousel({tracks = []}) {
       startX: event.clientX,
       lastX: event.clientX,
       distance: 0,
-      moved: false,
       active: true
     };
     setDragging(true);
   };
 
-  const onMove = (event) => {
+  const onCdPointerMove = (event) => {
     const state = drag.current;
     if (!state.active || state.pointerId !== event.pointerId) return;
 
@@ -77,22 +78,21 @@ export default function RecentPlaysCarousel({tracks = []}) {
       move(state.lastX < state.startX ? 1 : -1);
       state.distance = 0;
       state.startX = state.lastX;
-      state.moved = true;
     }
   };
 
-  const onUp = (event) => {
+  const onCdPointerUp = (event) => {
     const state = drag.current;
     if (!state.active || state.pointerId !== event.pointerId) return;
     resetDrag(event.currentTarget, event.pointerId);
   };
 
-  const onCancel = (event) => {
+  const onCdPointerCancel = (event) => {
     if (drag.current.pointerId !== event.pointerId) return;
     resetDrag(event.currentTarget, event.pointerId);
   };
 
-  const onLostPointerCapture = (event) => {
+  const onCdLostPointerCapture = (event) => {
     if (drag.current.pointerId !== event.pointerId) return;
     drag.current.active = false;
     drag.current.pointerId = null;
@@ -109,11 +109,6 @@ export default function RecentPlaysCarousel({tracks = []}) {
   return <div
     className={`recent-carousel${dragging ? " is-dragging" : ""}`}
     tabIndex={0}
-    onPointerDown={onDown}
-    onPointerMove={onMove}
-    onPointerUp={onUp}
-    onPointerCancel={onCancel}
-    onLostPointerCapture={onLostPointerCapture}
     onKeyDown={onKeyDown}
     aria-label="Recent plays carousel"
   >
@@ -150,31 +145,37 @@ export default function RecentPlaysCarousel({tracks = []}) {
           style={style}
           key={item.key}
         >
+          <div
+            className="recent-art-wrap recent-cd-drag-zone"
+            onPointerDown={onCdPointerDown}
+            onPointerMove={onCdPointerMove}
+            onPointerUp={onCdPointerUp}
+            onPointerCancel={onCdPointerCancel}
+            onLostPointerCapture={onCdLostPointerCapture}
+            title="Drag to browse recent plays"
+          >
+            <div
+              className="recent-cd"
+              style={{backgroundImage: item.image ? `url(${item.image})` : "none"}}
+              aria-hidden="true"
+            />
+            {!item.image && <div className="recent-cover-fallback">Last.fm</div>}
+          </div>
+
           <a
-            className="recent-cd-link"
+            className="recent-card-info recent-card-info-link"
             href={trackUrl}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`${item.track?.name || "Unknown track"} by ${item.artist} on Last.fm`}
-            draggable={false}
+            aria-label={`Open ${item.track?.name || "Unknown track"} by ${item.artist} on Last.fm`}
           >
-            <div className="recent-art-wrap">
-              <div
-                className="recent-cd"
-                style={{backgroundImage: item.image ? `url(${item.image})` : "none"}}
-                aria-hidden="true"
-              />
-              {!item.image && <div className="recent-cover-fallback">Last.fm</div>}
-            </div>
-          </a>
-          <div className="recent-card-info">
             <strong>{item.track?.name || "Unknown track"}</strong>
             <small>{item.artist}</small>
-            <span>{item.track?.["@attr"]?.nowplaying === "true" ? "NOW PLAYING" : "RECENT"}</span>
-          </div>
+            <span>{item.track?.["@attr"]?.nowplaying === "true" ? "NOW PLAYING · LAST.FM ↗" : "RECENT · LAST.FM ↗"}</span>
+          </a>
         </article>;
       })}
     </div>
-    <div className="recent-carousel-hint">drag to explore · click the CD to open Last.fm</div>
+    <div className="recent-carousel-hint">drag the CD to explore · click the song info to open Last.fm</div>
   </div>;
 }
