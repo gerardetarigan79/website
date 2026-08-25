@@ -1,8 +1,9 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
 
 const MAX_TRACKS = 15;
-// Keep both preview CDs exactly the same distance from the active CD.
-const STEP = 135;
+// Keep both preview CDs mirrored around the active CD while giving the spindle centers
+// enough separation to meet the symmetric fade boundary.
+const STEP = 145;
 const ROTATE_AMPLITUDE = 18;
 const imageOf = (track) => { const images = Array.isArray(track?.image) ? track.image : []; return (images.find((image) => image?.size === "extralarge") || images.at(-1))?.["#text"] || ""; };
 const artistOf = (track) => track?.artist?.["#text"] || track?.artist?.name || "Unknown artist";
