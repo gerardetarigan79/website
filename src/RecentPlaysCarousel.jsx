@@ -45,7 +45,14 @@ export default function RecentPlaysCarousel({tracks = []}) {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const resetDrag = () => {
+  const releasePointer = (element, pointerId) => {
+    try {
+      if (element.hasPointerCapture?.(pointerId)) element.releasePointerCapture(pointerId);
+    } catch {}
+  };
+
+  const resetDrag = (element = null, pointerId = null) => {
+    if (element && pointerId != null) releasePointer(element, pointerId);
     drag.current.active = false;
     drag.current.pointerId = null;
     setDragging(false);
@@ -53,6 +60,12 @@ export default function RecentPlaysCarousel({tracks = []}) {
 
   const onDown = (event) => {
     if (event.button !== 0 && event.pointerType === "mouse") return;
+
+    // Keep receiving pointer events even if the cursor leaves the carousel.
+    // This guarantees pointerup is seen and the drag can never get stuck.
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {}
 
     drag.current = {
       pointerId: event.pointerId,
@@ -69,18 +82,6 @@ export default function RecentPlaysCarousel({tracks = []}) {
   const onMove = (event) => {
     const state = drag.current;
     if (!state.active || state.pointerId !== event.pointerId) return;
-
-    // If the pointer leaves the carousel's actual box while dragging, end the
-    // gesture immediately. This prevents document-level pointer events from
-    // making the carousel keep following the mouse after the button is released.
-    const rect = event.currentTarget.getBoundingClientRect();
-    const inside = event.clientX >= rect.left && event.clientX <= rect.right &&
-      event.clientY >= rect.top && event.clientY <= rect.bottom;
-    if (!inside) {
-      suppressClick.current = state.moved;
-      resetDrag();
-      return;
-    }
 
     const delta = event.clientX - state.lastX;
     if (!delta) return;
@@ -104,13 +105,21 @@ export default function RecentPlaysCarousel({tracks = []}) {
     if (state.moved || Math.abs(event.clientX - state.startX) > 12) {
       suppressClick.current = true;
     }
-    resetDrag();
+    resetDrag(event.currentTarget, event.pointerId);
   };
 
   const onCancel = (event) => {
     if (drag.current.pointerId !== event.pointerId) return;
     suppressClick.current = drag.current.moved;
-    resetDrag();
+    resetDrag(event.currentTarget, event.pointerId);
+  };
+
+  const onLostPointerCapture = (event) => {
+    if (drag.current.pointerId !== event.pointerId) return;
+    suppressClick.current = drag.current.moved;
+    drag.current.active = false;
+    drag.current.pointerId = null;
+    setDragging(false);
   };
 
   const onKeyDown = (event) => {
@@ -127,7 +136,7 @@ export default function RecentPlaysCarousel({tracks = []}) {
     onPointerMove={onMove}
     onPointerUp={onUp}
     onPointerCancel={onCancel}
-    onLostPointerCapture={onCancel}
+    onLostPointerCapture={onLostPointerCapture}
     onKeyDown={onKeyDown}
     aria-label="Recent plays carousel"
   >
