@@ -61,8 +61,6 @@ export default function RecentPlaysCarousel({tracks = []}) {
   const onDown = (event) => {
     if (event.button !== 0 && event.pointerType === "mouse") return;
 
-    // Keep receiving pointer events even if the cursor leaves the carousel.
-    // This guarantees pointerup is seen and the drag can never get stuck.
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
     } catch {}
@@ -102,8 +100,11 @@ export default function RecentPlaysCarousel({tracks = []}) {
     const state = drag.current;
     if (!state.active || state.pointerId !== event.pointerId) return;
 
-    if (state.moved || Math.abs(event.clientX - state.startX) > 12) {
+    const totalMovement = Math.abs(event.clientX - state.lastX) + state.distance;
+    if (state.moved || totalMovement > 12) {
       suppressClick.current = true;
+    } else {
+      suppressClick.current = false;
     }
     resetDrag(event.currentTarget, event.pointerId);
   };
