@@ -142,11 +142,12 @@ export default function RecentPlaysCarousel({tracks = []}) {
 
         return <article
           className={`recent-card${activeCard ? " is-active" : ""}`}
-          style={style}
+          style={{...style, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", width: "280px", height: "auto"}}
           key={item.key}
         >
           <div
             className="recent-art-wrap recent-cd-drag-zone"
+            style={{width: "280px", height: "280px", flex: "0 0 280px", position: "relative"}}
             onPointerDown={onCdPointerDown}
             onPointerMove={onCdPointerMove}
             onPointerUp={onCdPointerUp}
@@ -168,6 +169,7 @@ export default function RecentPlaysCarousel({tracks = []}) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Open ${item.track?.name || "Unknown track"} by ${item.artist} on Last.fm`}
+            style={{position: "static", display: "block", width: "100%", marginTop: "14px", textAlign: "center", flex: "0 0 auto"}}
           >
             <strong>{item.track?.name || "Unknown track"}</strong>
             <small>{item.artist}</small>
