@@ -1,8 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
 
 const MAX_TRACKS = 15;
-// Keep the right preview at the proven 135px position from a022a59,
-// while setting the left preview to the requested 155px spacing.
 const RIGHT_STEP = 135;
 const LEFT_STEP = 155;
 const ROTATE_AMPLITUDE = 18;
