@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useRef, useState} from "react";
 
 const MAX_TRACKS = 15;
 const STEP = 150;
-const ROTATE_AMPLITUDE = 12;
+const ROTATE_AMPLITUDE = 18;
 const imageOf = (track) => { const images = Array.isArray(track?.image) ? track.image : []; return (images.find((image) => image?.size === "extralarge") || images.at(-1))?.["#text"] || ""; };
 const artistOf = (track) => track?.artist?.["#text"] || track?.artist?.name || "Unknown artist";
 const lastFmUrlOf = (track) => track?.url || track?.link || `https://www.last.fm/music/${encodeURIComponent(artistOf(track))}/_/${encodeURIComponent(track?.name || "")}`;
