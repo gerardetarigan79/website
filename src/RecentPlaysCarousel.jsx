@@ -98,15 +98,17 @@ export default function RecentPlaysCarousel({tracks = []}) {
             <div className="recent-art-wrap"><div className="recent-cd" style={{backgroundImage: item.image ? `url(${item.image})` : "none"}} aria-hidden="true" />{!item.image && <div className="recent-cover-fallback">Last.fm</div>}</div>
           </div>
           <div className="recent-card-info-row">
-            <a className="recent-card-info-link" href={trackUrl} target="_blank" rel="noopener noreferrer" aria-label={`Open ${item.track?.name || "Unknown track"} by ${item.artist} on Last.fm`}>
-              <strong>{item.track?.name || "Unknown track"}</strong>
+            <div className="recent-card-info">
+              <a className="recent-card-info-link" href={trackUrl} target="_blank" rel="noopener noreferrer" aria-label={`Open ${item.track?.name || "Unknown track"} by ${item.artist} on Last.fm`}>
+                <strong>{item.track?.name || "Unknown track"}</strong>
+              </a>
               <small>{item.artist}</small>
               <span>{item.track?.["@attr"]?.nowplaying === "true" ? "NOW PLAYING · LAST.FM ↗" : "RECENT · LAST.FM ↗"}</span>
-            </a>
+            </div>
           </div>
         </article>;
       })}
     </div>
-    <div className="recent-carousel-hint">drag the CD to explore · click the song info to open Last.fm</div>
+    <div className="recent-carousel-hint">drag the CD to explore · click the song title to open Last.fm</div>
   </div>;
 }
