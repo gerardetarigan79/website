@@ -59,11 +59,10 @@ export default function RecentPlaysCarousel({tracks = []}) {
     if (drag.current.pointerId === event.pointerId) resetDrag(event.currentTarget, event.pointerId);
   };
   const onMouseMove = (event) => {
-    if (!event.currentTarget) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const x = Math.max(-1, Math.min(1, (event.clientX - rect.left - rect.width / 2) / (rect.width / 2)));
     const y = Math.max(-1, Math.min(1, (event.clientY - rect.top - rect.height / 2) / (rect.height / 2)));
-    setTilt({x: -y * 18, y: x * 18});
+    setTilt({x: -y * 26, y: x * 26});
   };
   const onMouseLeave = () => setTilt({x: 0, y: 0});
   const onKeyDown = (event) => {
@@ -75,17 +74,18 @@ export default function RecentPlaysCarousel({tracks = []}) {
 
   return <div className={`rpc${dragging ? " is-dragging" : ""}`} tabIndex={0} onKeyDown={onKeyDown} aria-label="Recent plays carousel">
     <style>{`
-      .rpc{position:relative;width:100%;padding:10px 0 4px;overflow:hidden;isolation:isolate;outline:none;mask-image:linear-gradient(to right,transparent 0%,black 25%,black 75%,transparent 100%);-webkit-mask-image:linear-gradient(to right,transparent 0%,black 25%,black 75%,transparent 100%)}
+      .rpc{position:relative;width:100%;padding:10px 0 4px;overflow:hidden;isolation:isolate;outline:none;mask-image:linear-gradient(to right,transparent 0%,black 25%,black 75%,transparent 100%);-webkit-mask-image:linear-gradient(to right,transparent 0%,black 25%,black 75%,transparent 100%);background:transparent;box-shadow:none}
+      .rpc:hover{background:transparent;box-shadow:none}
       .rpc-track{position:relative;height:390px;perspective:1100px;transform-style:preserve-3d;overflow:visible}
       .rpc-card{position:absolute;left:50%;top:0;width:280px;text-align:center;transform-style:preserve-3d;transition:transform .42s cubic-bezier(.22,.75,.2,1),opacity .32s ease;pointer-events:none}
-      .rpc-drag-zone{width:280px;height:280px;position:relative;margin:0 auto;pointer-events:auto;cursor:grab;touch-action:none}
+      .rpc-drag-zone{width:316px;height:316px;position:relative;margin:-18px auto -18px;display:grid;place-items:center;pointer-events:auto;cursor:grab;touch-action:none;background:transparent;box-shadow:none}
       .rpc.is-dragging .rpc-drag-zone{cursor:grabbing}
-      .rpc-cd{position:absolute;inset:0;border-radius:50%;background-color:#17171c;background-position:center;background-size:cover;background-repeat:no-repeat;box-shadow:0 20px 35px rgba(0,0,0,.42);animation:rpc-spin 18s linear infinite;will-change:transform;transform:rotateX(var(--rpc-x,0deg)) rotateY(var(--rpc-y,0deg));transition:transform .5s ease-out,filter .2s ease}
+      .rpc-cd{position:relative;width:280px;height:280px;border-radius:50%;background-color:#17171c;background-position:center;background-size:cover;background-repeat:no-repeat;box-shadow:0 20px 35px rgba(0,0,0,.42);animation:rpc-spin 18s linear infinite;will-change:transform;transform:rotateX(var(--rpc-x,0deg)) rotateY(var(--rpc-y,0deg));transition:transform .6s cubic-bezier(.16,1,.3,1),filter .2s ease}
       .rpc-cd::before{content:"";position:absolute;left:50%;top:50%;width:54px;height:54px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at center,#08080b 0 17%,#24242a 18% 31%,#0b0b0f 32% 42%,rgba(0,0,0,.78) 43% 100%);box-shadow:0 0 0 2px rgba(255,255,255,.12),inset 0 0 8px rgba(0,0,0,.9);z-index:3}
       .rpc-cd::after{content:"";position:absolute;inset:5%;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 22px,rgba(255,255,255,.035) 23px 24px);mix-blend-mode:screen;pointer-events:none}
       @keyframes rpc-spin{from{rotate:0deg}to{rotate:360deg}}
-      .rpc-cover-fallback{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;background:#17171c;color:#777}
-      .rpc-info{margin:14px auto 0;width:100%;padding:0 12px;line-height:1.25;pointer-events:auto}
+      .rpc-cover-fallback{position:absolute;width:280px;height:280px;border-radius:50%;display:grid;place-items:center;background:#17171c;color:#777;pointer-events:none}
+      .rpc-info{margin:14px auto 0;width:100%;padding:0 12px;line-height:1.25;pointer-events:auto;background:transparent;box-shadow:none}
       .rpc-info strong,.rpc-info small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .rpc-info strong{font-size:13px;font-weight:700;color:#eee}
       .rpc-info small{margin-top:5px;font-size:10px;color:#777}
@@ -93,9 +93,9 @@ export default function RecentPlaysCarousel({tracks = []}) {
       .rpc-boundary.left{left:-32px}.rpc-boundary.right{right:-32px}
       .rpc-boundary-card{width:110px;height:110px;border:1px solid rgba(255,255,255,.08);border-radius:50%;display:grid;place-items:center;align-content:center;gap:5px;background:rgba(255,255,255,.018);box-shadow:0 12px 30px rgba(0,0,0,.22)}
       .rpc-boundary-card b{font-size:13px;color:#aaa}.rpc-boundary-card small{font-size:7px;letter-spacing:.12em;color:#666}
-      .rpc-hint{text-align:center;margin-top:-2px;font-size:9px;letter-spacing:.08em;color:#555;text-transform:lowercase}
+      .rpc-hint{text-align:center;margin-top:-2px;font-size:9px;letter-spacing:.08em;color:#555;text-transform:lowercase;background:transparent;box-shadow:none}
       .rpc-empty{padding:24px;text-align:center;color:#666;font-size:12px}
-      @media(max-width:700px){.rpc-track{height:350px}.rpc-drag-zone,.rpc-card{width:240px}.rpc-drag-zone,.rpc-cd{height:240px}.rpc-boundary{display:none}}
+      @media(max-width:700px){.rpc-track{height:350px}.rpc-drag-zone{width:276px;height:276px;margin:-18px auto -18px}.rpc-drag-zone,.rpc-cd{ }.rpc-cd{width:240px;height:240px}.rpc-cover-fallback{width:240px;height:240px}.rpc-boundary{display:none}}
     `}</style>
     <div className="rpc-boundary left"><div className="rpc-boundary-card"><b>last.fm</b><small>START</small></div></div>
     <div className="rpc-boundary right"><div className="rpc-boundary-card"><b>last.fm</b><small>END</small></div></div>
@@ -107,8 +107,8 @@ export default function RecentPlaysCarousel({tracks = []}) {
         const x = offset * STEP;
         const opacity = distance > 3 ? 0 : Math.max(.2, 1 - distance * .22);
         return <article className="rpc-card" key={item.key} style={{transform:`translateX(calc(-50% + ${x}px)) translateZ(${activeCard ? 35 : Math.max(0, 14 - distance * 4)}px) rotateY(${offset * -18}deg) scale(${activeCard ? 1 : Math.max(.66, 1 - distance * .1)})`,opacity,zIndex:30-distance}}>
-          <div className="rpc-drag-zone cursor-target" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel} onMouseMove={activeCard ? onMouseMove : undefined} onMouseLeave={activeCard ? onMouseLeave : undefined} title="Drag to browse recent plays">
-            <div className="rpc-cd" style={{backgroundImage:item.image?`url(${item.image})`:"none",...(activeCard?{"--rpc-x":`${tilt.x}deg`,"--rpc-y":`${tilt.y}deg`}: {})}} aria-label={`${item.track?.name || "Unknown track"} CD`} />
+          <div className="rpc-drag-zone" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel} onMouseMove={activeCard ? onMouseMove : undefined} onMouseLeave={activeCard ? onMouseLeave : undefined} title="Drag to browse recent plays">
+            <div className="rpc-cd cursor-target" style={{backgroundImage:item.image?`url(${item.image})`:"none",...(activeCard?{"--rpc-x":`${tilt.x}deg`,"--rpc-y":`${tilt.y}deg`}: {})}} aria-label={`${item.track?.name || "Unknown track"} CD`} />
             {!item.image&&<div className="rpc-cover-fallback">♪</div>}
           </div>
           <div className="rpc-info cursor-target"><strong>{item.track?.name || "Unknown track"}</strong><small>{item.artist}</small></div>
