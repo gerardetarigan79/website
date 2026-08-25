@@ -54,7 +54,6 @@ export default function RecentPlaysCarousel({tracks = []}) {
     };
     suppressClick.current = false;
     setDragging(true);
-    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
   const onMove = (event) => {
@@ -79,7 +78,6 @@ export default function RecentPlaysCarousel({tracks = []}) {
       suppressClick.current = true;
     }
     setDragging(false);
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
   };
 
   const onKeyDown = (event) => {
@@ -125,8 +123,7 @@ export default function RecentPlaysCarousel({tracks = []}) {
           </article>;
         }
 
-        // Last.fm supplies a canonical track URL in the API response.
-        // Use that URL directly instead of constructing a potentially invalid library URL.
+        // Use Last.fm's canonical URL from the API whenever available.
         const trackUrl = item.track?.url || `https://www.last.fm/user/drva7/music/${encodeURIComponent(item.artist)}/_/${encodeURIComponent(item.track?.name || "")}`;
 
         return <a
