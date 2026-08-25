@@ -45,10 +45,9 @@ export default function RecentPlaysCarousel({tracks = []}) {
     setDragging(false);
   };
 
-  // Dragging starts ONLY from the CD area. The track information below it is
-  // deliberately outside this interaction so it can behave like a normal link.
   const onCdPointerDown = (event) => {
     if (event.button !== 0 && event.pointerType === "mouse") return;
+    event.stopPropagation();
 
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -67,6 +66,7 @@ export default function RecentPlaysCarousel({tracks = []}) {
   const onCdPointerMove = (event) => {
     const state = drag.current;
     if (!state.active || state.pointerId !== event.pointerId) return;
+    event.stopPropagation();
 
     const delta = event.clientX - state.lastX;
     if (!delta) return;
@@ -84,11 +84,13 @@ export default function RecentPlaysCarousel({tracks = []}) {
   const onCdPointerUp = (event) => {
     const state = drag.current;
     if (!state.active || state.pointerId !== event.pointerId) return;
+    event.stopPropagation();
     resetDrag(event.currentTarget, event.pointerId);
   };
 
   const onCdPointerCancel = (event) => {
     if (drag.current.pointerId !== event.pointerId) return;
+    event.stopPropagation();
     resetDrag(event.currentTarget, event.pointerId);
   };
 
@@ -97,6 +99,12 @@ export default function RecentPlaysCarousel({tracks = []}) {
     drag.current.active = false;
     drag.current.pointerId = null;
     setDragging(false);
+  };
+
+  const onInfoPointerDown = (event) => {
+    // The Last.fm area is a completely separate interaction surface.
+    // Never allow it to start or inherit the CD drag gesture.
+    event.stopPropagation();
   };
 
   const onKeyDown = (event) => {
@@ -168,6 +176,8 @@ export default function RecentPlaysCarousel({tracks = []}) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Open ${item.track?.name || "Unknown track"} by ${item.artist} on Last.fm`}
+            onPointerDown={onInfoPointerDown}
+            style={{pointerEvents: "auto", position: "relative", zIndex: 100}}
           >
             <strong>{item.track?.name || "Unknown track"}</strong>
             <small>{item.artist}</small>
