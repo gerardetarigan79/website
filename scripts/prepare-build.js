@@ -3,10 +3,23 @@ import fs from "node:fs";
 const path = "src/main.jsx";
 let source = fs.readFileSync(path, "utf8");
 
+const asciiImport = 'import ASCIIText from "./ASCIIText";';
+if (!source.includes('import RecentPlaysCarousel from "./RecentPlaysCarousel";')) {
+  source = source.replace(asciiImport, `${asciiImport}\nimport RecentPlaysCarousel from "./RecentPlaysCarousel";`);
+}
+
+const musicStart = source.indexOf("function Music()");
+const musicEnd = source.indexOf("function Stat(", musicStart);
+if (musicStart === -1 || musicEnd === -1) {
+  throw new Error("prepare-build: could not find Music block");
+}
+
+const musicReplacement = `function Music(){const [data,setData]=useState({recent:[],artists:[],albums:[],info:null}),[loading,setLoading]=useState(true);const load=async()=>{try{const [recent,artists,albums,info]=await Promise.all([lastfm("recent"),lastfm("artists"),lastfm("albums"),lastfm("info")]);setData({recent:recent.recenttracks?.track||[],artists:artists.topartists?.artist||[],albums:albums.topalbums?.album||[],info:info.user||null})}catch(e){}finally{setLoading(false)}};useEffect(()=>{load();const id=setInterval(load,15000);return()=>clearInterval(id)},[]);return <Page id="music" kicker="what i've been listening to" title="music"><p className="lead">live listening data from <b>Last.fm</b>, updated automatically.</p><div className="music-stats"><Stat label="Scrobbles" value={data.info?fmtNum(data.info.playcount):""}/><Stat label="Artists" value={data.info?fmtNum(data.info.artist_count):""}/><Stat label="Last.fm user" value={LASTFM_USER}/></div><div className="music-layout"><MusicList title="TOP ARTISTS · 30D" items={data.artists.slice(0,5).map(x=>({name:x.name,meta:x.playcount}))}/><div className="now-playing cursor-target"><div className="music-heading">✦ RECENT PLAYS ✦</div>{loading?<Skeleton/>:<RecentPlaysCarousel tracks={data.recent}/>}</div><MusicList title="TOP ALBUMS · 30D" items={data.albums.slice(0,6).map(x=>({name:x.name,meta:x.artist?.name}))}/></div></Page>}`;
+source = source.slice(0, musicStart) + musicReplacement + "\n" + source.slice(musicEnd);
+
 const start = source.indexOf("function Entry({onEnter})");
 const endMarker = "createRoot(document.getElementById(\"root\")).render(<App/>);";
 const end = source.indexOf(endMarker, start);
-
 if (start === -1 || end === -1) {
   throw new Error("prepare-build: could not find Entry/App block in src/main.jsx");
 }
@@ -15,16 +28,38 @@ const replacement = `function Entry({onEnter, exiting}){const [ready,setReady]=u
 function Views(){const [views,setViews]=useState(null);useEffect(()=>{fetch("/api/views",{method:"POST"}).then(r=>r.json()).then(x=>setViews(x.views)).catch(()=>{const k="draven-local-views";const v=Number(localStorage.getItem(k)||"0")+1;localStorage.setItem(k,v);setViews(v)})},[]);return <div className="views">◉ {views==null?"":fmtNum(views)}</div>}
 function App(){const [entryVisible,setEntryVisible]=useState(()=>sessionStorage.getItem("draven-entered")!=="1");const [entryExiting,setEntryExiting]=useState(false);const [active,setActive]=useState("home");useEffect(()=>{const sync=()=>{const hash=window.location.hash.replace("#","");if(PAGES.includes(hash))setActive(hash)};sync();const io=new IntersectionObserver(es=>{const visible=es.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(visible)setActive(visible.target.id)},{rootMargin:"-42% 0px -42% 0px",threshold:[0,.2,.5,1]});PAGES.forEach(id=>{const el=document.getElementById(id);if(el)io.observe(el)});window.addEventListener("hashchange",sync);return()=>{io.disconnect();window.removeEventListener("hashchange",sync)}},[]);const enter=()=>{if(entryExiting)return;sessionStorage.setItem("draven-entered","1");setEntryExiting(true);setTimeout(()=>setEntryVisible(false),700)};const navigate=id=>{setActive(id);window.history.replaceState(null,"","#"+id);requestAnimationFrame(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}))};const cursor=<TargetCursor targetSelector="a, button, [role='button'], .cursor-target" spinDuration={2} hideDefaultCursor={true} parallaxOn={true}/>;const background=<><LightRays raysOrigin="top-center" raysColor="#00ffff" raysSpeed={1.5} lightSpread={0.8} rayLength={1.2} followMouse={true} mouseInfluence={0.1} noiseAmount={0.1} distortion={0.05} className="custom-rays" pulsating /></>;return <>{background}{cursor}{entryVisible&&<Entry onEnter={enter} exiting={entryExiting}/>}<aside className="option-wheel-sidebar"><OptionWheel items={NAV.map(([_,label])=>label)} defaultSelected={PAGES.indexOf(active)} textColor="#a6a6a6" activeColor="#ffffff" side="left" fontSize={3} spacing={1.4} curve={1} tilt={6} blur={2} fade={0.25} smoothing={200} inset={18} loop={false} draggable soundUrl="/audio/soundclick.mp3" soundVolume={0.5} onChange={(index)=>navigate(PAGES[index])}/></aside><main className="site">{PAGES.map(id=>({home:<Home/>,music:<Music/>,projects:<Projects/>,skills:<Skills/>,setup:<Setup/>,games:<Games/>,f1:<F1/>,biolinks:<Biolinks/>,contact:<Contact/>}[id]))}</main>{!entryVisible&&<Views/>}</>}
 createRoot(document.getElementById("root")).render(<App/>);`;
-
 source = source.slice(0, start) + replacement + "\n";
 fs.writeFileSync(path, source);
 
 const stylesPath = "src/styles.css";
 let styles = fs.readFileSync(stylesPath, "utf8");
-const preloadStyles = "\n/* Intro transition: keep the fully mounted site underneath while the entry screen fades away. */\n.entry{transition:opacity .7s ease,visibility .7s ease}.entry.exiting{opacity:0;visibility:hidden;pointer-events:none}\n";
-if (!styles.includes("/* Intro transition: keep the fully mounted site underneath")) {
-  styles += preloadStyles;
-  fs.writeFileSync(stylesPath, styles);
-}
+const carouselStyles = `
 
-console.log("prepare-build: main site mounts immediately behind the intro and is revealed after the intro fade");
+/* Recent Plays: 15-track 3D carousel with Last.fm boundary cards. */
+.recent-carousel{position:relative;height:420px;overflow:hidden;outline:none;touch-action:pan-y;cursor:grab;perspective:1200px;user-select:none}
+.recent-carousel.is-dragging{cursor:grabbing}
+.recent-carousel-track{position:absolute;inset:0;transform-style:preserve-3d}
+.recent-card{position:absolute;left:50%;top:22px;width:235px;height:350px;transform-style:preserve-3d;transform-origin:center center;transition:transform .55s cubic-bezier(.2,.75,.2,1),opacity .45s ease;will-change:transform,opacity}
+.recent-art-wrap{position:relative;width:235px;height:265px;display:grid;place-items:center;transform-style:preserve-3d}
+.recent-cd{position:absolute;width:245px;height:245px;border-radius:50%;background-size:cover;background-position:center;filter:brightness(.45) saturate(.8);box-shadow:0 22px 45px #000b;animation:recentCdSpin 21s linear infinite;transform:translateZ(-18px) rotate(7deg)}
+.recent-cover{position:relative;width:235px;height:235px;overflow:hidden;background:#101014;border:1px solid #2b2b32;border-radius:2px;box-shadow:0 25px 45px #000b,0 0 50px #6a029730;transform:translateZ(28px)}
+.recent-cover img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.recent-cover-fallback{width:100%;height:100%;display:grid;place-items:center;color:#666;font-size:10px;background:radial-gradient(circle,#1c1c22,#0d0d11)}
+.recent-card-info{padding:13px 4px 0;text-align:center;transform:translateZ(34px)}
+.recent-card-info strong{display:block;color:#eee;font-size:12px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-card-info small{display:block;color:#666;font-size:8px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-card-info span{display:block;color:#444;font-size:7px;letter-spacing:.12em;margin-top:7px}
+.lastfm-boundary-card{width:235px;height:350px;border:1px solid #2a2a31;border-radius:10px;background:linear-gradient(145deg,rgba(28,28,34,.72),rgba(8,8,11,.82));backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;box-shadow:0 25px 55px #0008;transform:translateZ(22px)}
+.lastfm-logo{font-family:Arial,sans-serif;font-weight:800;font-size:34px;letter-spacing:-.07em;color:#e7e7eb}.lastfm-logo span{color:#e05263}
+.lastfm-boundary-card small{font-size:7px;letter-spacing:.18em;color:#555}
+.recent-carousel-hint{position:absolute;left:0;right:0;bottom:5px;text-align:center;color:#3f3f46;font-size:7px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+.recent-carousel-empty{height:350px;display:grid;place-items:center;color:#555;font-size:9px}
+@keyframes recentCdSpin{from{transform:translateZ(-18px) rotate(7deg)}to{transform:translateZ(-18px) rotate(367deg)}}
+@media(max-width:850px){.recent-card{width:210px}.recent-art-wrap,.recent-cover{width:210px}.recent-art-wrap{height:245px}.recent-cd{width:220px;height:220px}.recent-cover{height:210px}.lastfm-boundary-card{width:210px;height:330px}.recent-carousel{height:400px}}
+`;
+if (!styles.includes("/* Recent Plays: 15-track 3D carousel")) styles += carouselStyles;
+const preloadStyles = "\n/* Intro transition: keep the fully mounted site underneath while the entry screen fades away. */\n.entry{transition:opacity .7s ease,visibility .7s ease}.entry.exiting{opacity:0;visibility:hidden;pointer-events:none}\n";
+if (!styles.includes("/* Intro transition: keep the fully mounted site underneath")) styles += preloadStyles;
+fs.writeFileSync(stylesPath, styles);
+
+console.log("prepare-build: wired 15-track recent plays carousel with Last.fm boundary cards");
