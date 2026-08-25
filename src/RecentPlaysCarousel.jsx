@@ -23,7 +23,7 @@ export default function RecentPlaysCarousel({tracks = []}) {
 
   const [active, setActive] = useState(items.length ? 1 : 0);
   const [dragging, setDragging] = useState(false);
-  const drag = useRef({startX: 0, lastX: 0, distance: 0, moved: false});
+  const drag = useRef({pointerId: null, startX: 0, lastX: 0, distance: 0, moved: false, active: false});
   const suppressClick = useRef(false);
   const clamp = (value) => Math.min(Math.max(value, 0), sequence.length - 1);
 
@@ -45,39 +45,60 @@ export default function RecentPlaysCarousel({tracks = []}) {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const resetDrag = () => {
+    drag.current.active = false;
+    drag.current.pointerId = null;
+    setDragging(false);
+  };
+
   const onDown = (event) => {
+    if (event.button !== 0 && event.pointerType === "mouse") return;
+
     drag.current = {
+      pointerId: event.pointerId,
       startX: event.clientX,
       lastX: event.clientX,
       distance: 0,
-      moved: false
+      moved: false,
+      active: true
     };
     suppressClick.current = false;
     setDragging(true);
   };
 
   const onMove = (event) => {
-    if (!dragging) return;
+    const state = drag.current;
+    if (!state.active || state.pointerId !== event.pointerId) return;
 
-    const delta = event.clientX - drag.current.lastX;
-    drag.current.distance += Math.abs(delta);
-    drag.current.lastX = event.clientX;
+    const delta = event.clientX - state.lastX;
+    if (!delta) return;
 
-    // Require a deliberately large drag before advancing one track.
-    if (drag.current.distance >= 110) {
-      move(drag.current.lastX < drag.current.startX ? 1 : -1);
-      drag.current.distance = 0;
-      drag.current.startX = drag.current.lastX;
-      drag.current.moved = true;
+    state.distance += Math.abs(delta);
+    state.lastX = event.clientX;
+
+    if (state.distance >= 110) {
+      move(state.lastX < state.startX ? 1 : -1);
+      state.distance = 0;
+      state.startX = state.lastX;
+      state.moved = true;
       suppressClick.current = true;
     }
   };
 
   const onUp = (event) => {
-    if (drag.current.moved || Math.abs(event.clientX - drag.current.startX) > 12) {
+    const state = drag.current;
+    if (!state.active || state.pointerId !== event.pointerId) return;
+
+    if (state.moved || Math.abs(event.clientX - state.startX) > 12) {
       suppressClick.current = true;
     }
-    setDragging(false);
+    resetDrag();
+  };
+
+  const onCancel = (event) => {
+    if (drag.current.pointerId !== event.pointerId) return;
+    suppressClick.current = drag.current.moved;
+    resetDrag();
   };
 
   const onKeyDown = (event) => {
@@ -93,7 +114,8 @@ export default function RecentPlaysCarousel({tracks = []}) {
     onPointerDown={onDown}
     onPointerMove={onMove}
     onPointerUp={onUp}
-    onPointerCancel={() => setDragging(false)}
+    onPointerCancel={onCancel}
+    onLostPointerCapture={onCancel}
     onKeyDown={onKeyDown}
     aria-label="Recent plays carousel"
   >
@@ -123,7 +145,6 @@ export default function RecentPlaysCarousel({tracks = []}) {
           </article>;
         }
 
-        // Use Last.fm's canonical URL from the API whenever available.
         const trackUrl = item.track?.url || `https://www.last.fm/user/drva7/music/${encodeURIComponent(item.artist)}/_/${encodeURIComponent(item.track?.name || "")}`;
 
         return <a
