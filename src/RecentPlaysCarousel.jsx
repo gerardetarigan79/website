@@ -58,11 +58,14 @@ export default function RecentPlaysCarousel({tracks = []}) {
   const onPointerCancel = (event) => {
     if (drag.current.pointerId === event.pointerId) resetDrag(event.currentTarget, event.pointerId);
   };
+
+  // 320px invisible hitbox around the unchanged 280px CD. This keeps parallax active
+  // as the pointer moves just outside the disc, then eases gently back to neutral.
   const onMouseMove = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = Math.max(-1, Math.min(1, (event.clientX - rect.left - rect.width / 2) / (rect.width / 2)));
     const y = Math.max(-1, Math.min(1, (event.clientY - rect.top - rect.height / 2) / (rect.height / 2)));
-    setTilt({x: -y * 26, y: x * 26});
+    setTilt({x: -y * 18, y: x * 18});
   };
   const onMouseLeave = () => setTilt({x: 0, y: 0});
   const onKeyDown = (event) => {
@@ -78,7 +81,7 @@ export default function RecentPlaysCarousel({tracks = []}) {
       .rpc:hover{background:transparent;box-shadow:none}
       .rpc-track{position:relative;height:390px;perspective:1100px;transform-style:preserve-3d;overflow:visible}
       .rpc-card{position:absolute;left:50%;top:0;width:280px;text-align:center;transform-style:preserve-3d;transition:transform .42s cubic-bezier(.22,.75,.2,1),opacity .32s ease;pointer-events:none}
-      .rpc-drag-zone{width:316px;height:316px;position:relative;margin:-18px auto -18px;display:grid;place-items:center;pointer-events:auto;cursor:grab;touch-action:none;background:transparent;box-shadow:none}
+      .rpc-drag-zone{width:320px;height:320px;position:relative;margin:-20px auto -20px;display:grid;place-items:center;pointer-events:auto;cursor:grab;touch-action:none;background:transparent;box-shadow:none}
       .rpc.is-dragging .rpc-drag-zone{cursor:grabbing}
       .rpc-cd{position:relative;width:280px;height:280px;border-radius:50%;background-color:#17171c;background-position:center;background-size:cover;background-repeat:no-repeat;box-shadow:0 20px 35px rgba(0,0,0,.42);animation:rpc-spin 18s linear infinite;will-change:transform;transform:rotateX(var(--rpc-x,0deg)) rotateY(var(--rpc-y,0deg));transition:transform .6s cubic-bezier(.16,1,.3,1),filter .2s ease}
       .rpc-cd::before{content:"";position:absolute;left:50%;top:50%;width:54px;height:54px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at center,#08080b 0 17%,#24242a 18% 31%,#0b0b0f 32% 42%,rgba(0,0,0,.78) 43% 100%);box-shadow:0 0 0 2px rgba(255,255,255,.12),inset 0 0 8px rgba(0,0,0,.9);z-index:3}
@@ -95,7 +98,7 @@ export default function RecentPlaysCarousel({tracks = []}) {
       .rpc-boundary-card b{font-size:13px;color:#aaa}.rpc-boundary-card small{font-size:7px;letter-spacing:.12em;color:#666}
       .rpc-hint{text-align:center;margin-top:-2px;font-size:9px;letter-spacing:.08em;color:#555;text-transform:lowercase;background:transparent;box-shadow:none}
       .rpc-empty{padding:24px;text-align:center;color:#666;font-size:12px}
-      @media(max-width:700px){.rpc-track{height:350px}.rpc-drag-zone{width:276px;height:276px;margin:-18px auto -18px}.rpc-drag-zone,.rpc-cd{ }.rpc-cd{width:240px;height:240px}.rpc-cover-fallback{width:240px;height:240px}.rpc-boundary{display:none}}
+      @media(max-width:700px){.rpc-track{height:350px}.rpc-drag-zone{width:280px;height:280px;margin:-18px auto -18px}.rpc-cd{width:240px;height:240px}.rpc-cover-fallback{width:240px;height:240px}.rpc-boundary{display:none}}
     `}</style>
     <div className="rpc-boundary left"><div className="rpc-boundary-card"><b>last.fm</b><small>START</small></div></div>
     <div className="rpc-boundary right"><div className="rpc-boundary-card"><b>last.fm</b><small>END</small></div></div>
