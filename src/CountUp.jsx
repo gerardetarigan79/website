@@ -15,10 +15,8 @@ export default function CountUp({
 }) {
   const ref = useRef(null);
   const motionValue = useMotionValue(direction === 'down' ? to : from);
-
   const damping = 20 + 40 * (1 / duration);
   const stiffness = 100 * (1 / duration);
-
   const springValue = useSpring(motionValue, { damping, stiffness });
   const isInView = useInView(ref, { once: true, margin: '0px' });
 
@@ -52,19 +50,20 @@ export default function CountUp({
     if (!isInView || !startWhen) return;
     if (typeof onStart === 'function') onStart();
 
-    const timeoutId = setTimeout(() => {
+    const startTimeout = setTimeout(() => {
       motionValue.set(direction === 'down' ? from : to);
     }, delay * 1000);
 
-    const durationTimeoutId = setTimeout(() => {
+    const endTimeout = setTimeout(() => {
+      if (ref.current) ref.current.textContent = formatValue(direction === 'down' ? from : to);
       if (typeof onEnd === 'function') onEnd();
-    }, delay * 1000 + duration * 1000);
+    }, delay * 1000 + duration * 1000 + 250);
 
     return () => {
-      clearTimeout(timeoutId);
-      clearTimeout(durationTimeoutId);
+      clearTimeout(startTimeout);
+      clearTimeout(endTimeout);
     };
-  }, [isInView, startWhen, motionValue, direction, from, to, delay, onStart, onEnd, duration]);
+  }, [isInView, startWhen, motionValue, direction, from, to, delay, onStart, onEnd, duration, formatValue]);
 
   useEffect(() => {
     const unsubscribe = springValue.on('change', latest => {
