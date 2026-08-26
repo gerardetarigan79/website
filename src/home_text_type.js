@@ -6,7 +6,12 @@ const mount = () => {
   const heading = document.querySelector('#home h1');
   if (!heading || heading.dataset.textTypeMounted === '1') return;
   heading.dataset.textTypeMounted = '1';
-  createRoot(heading).render(
+
+  const mountPoint = document.createElement('span');
+  mountPoint.className = 'home-text-type-mount';
+  heading.replaceChildren(mountPoint);
+
+  createRoot(mountPoint).render(
     <TextType
       as="span"
       text={["Draven"]}
