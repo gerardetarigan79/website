@@ -89,4 +89,4 @@ const preloadStyles = "\n/* Intro transition: keep the fully mounted site undern
 if (!styles.includes("/* Intro transition: keep the fully mounted site underneath")) styles += preloadStyles;
 fs.writeFileSync(stylesPath, styles);
 
-console.log("prepare-build: wired 15-track recent plays carousel with Last.fm boundary cards");
+console.log("prepare-build: projects fixed with Doxa Dock, Vanta Flow, and Argo Node");
