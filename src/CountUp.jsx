@@ -1,5 +1,5 @@
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useInView, useMotionValue, useSpring } from 'motion/react';
-import { useCallback, useEffect, useRef } from 'react';
 
 export default function CountUp({
   to,
