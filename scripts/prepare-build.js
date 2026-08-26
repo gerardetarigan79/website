@@ -1,5 +1,6 @@
 import fs from "node:fs";
 
+// Canonical build-time wiring for the current portfolio sections.
 const path = "src/main.jsx";
 let source = fs.readFileSync(path, "utf8");
 
