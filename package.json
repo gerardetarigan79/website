@@ -4,8 +4,8 @@
   "version": "2.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/inject-countup.js && vite",
-    "build": "node scripts/prepare-build.js && node scripts/inject-countup.js && vite build",
+    "dev": "node scripts/inject-countup.js && node scripts/fix-views.js && vite",
+    "build": "node scripts/prepare-build.js && node scripts/fix-views.js && node scripts/inject-countup.js && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
