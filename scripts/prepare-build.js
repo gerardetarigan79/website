@@ -19,11 +19,9 @@ if (projectsStart === -1 || projectsEnd === -1) throw new Error("prepare-build: 
 const projectsReplacement = `function Projects(){const projects=[{name:"Doxa Dock",subtitle:"private user application",description:"Lightweight client utility and automation dashboard I built to give me deeper control over account workflows. It streamlines daily tasks with custom scripts, real-time activity logging, and tailored profile.",logo:"/projects/doxa.png",className:"doxa"},{name:"Vanta Flow",subtitle:"After Effects workflow plugin",description:"An After Effects plugin built around essential tools, shortcuts, presets, and workflow utilities to make editing faster and more efficient.",logo:"/projects/vanta.png",className:"vanta"},{name:"Argo Node",subtitle:"Discord utility bot",description:"discord utility bot i made for fun",logo:"/projects/argo.png",className:"argo"}];return <Page id="projects" kicker="my work" title="projects"><p className="lead">projects i build to improve my workflow.</p><div className="projects-grid">{projects.map(project=><div className={\`project-card project-card-\${project.className} cursor-target\`} key={project.name}><div className="project-logo-wrap"><img className="project-logo" src={project.logo} alt={project.name}/></div><div className="project-body"><div className="project-brand"><span>{project.name}</span></div><h2>{project.subtitle}</h2><p>{project.description}</p></div></div>)}</div></Page>}`;
 source = source.slice(0, projectsStart) + projectsReplacement + "\n" + source.slice(projectsEnd);
 
-const canonicalProjectsStart = source.indexOf("function Projects()");
-const canonicalProjectsEnd = source.indexOf("function Skills(", canonicalProjectsStart);
-const canonicalProjects = source.slice(canonicalProjectsStart, canonicalProjectsEnd);
-if ((canonicalProjects.match(/project-card/g) || []).length !== 4 || (canonicalProjects.match(/projects-grid/g) || []).length !== 1 || canonicalProjects.includes("doxa-preview") || canonicalProjects.includes("view project")) {
-  throw new Error("prepare-build: Projects section is not canonical; refusing to build duplicate/legacy cards");
+const canonicalProjects = source.slice(source.indexOf("function Projects()"), source.indexOf("function Skills(", source.indexOf("function Projects()")));
+if (!canonicalProjects.includes('name:"Doxa Dock"') || !canonicalProjects.includes('name:"Vanta Flow"') || !canonicalProjects.includes('name:"Argo Node"') || canonicalProjects.includes("doxa-preview") || canonicalProjects.includes("view project") || !canonicalProjects.includes("projects-grid")) {
+  throw new Error("prepare-build: Projects section is not canonical");
 }
 
 const start = source.indexOf("function Entry({onEnter}");
