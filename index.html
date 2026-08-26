@@ -30,8 +30,6 @@
     }, 320);
   }, true);
 
-  // Recent-play cards are display/drag elements only. Nothing in this area
-  // is allowed to navigate to Last.fm, including legacy click handlers.
   document.addEventListener('click', (event) => {
     const recent = event.target.closest?.('.recent-card, .recent-scroller, .recent-carousel, .np-bottom');
     if (!recent) return;
@@ -55,5 +53,6 @@
 <script type="module" src="/src/view_counter_ui.js"></script>
 <script type="module" src="/src/gradual_blur_mount.jsx"></script>
 <script type="module" src="/src/global_click_sound.js"></script>
+<script type="module" src="/src/noise-background.js"></script>
 </body>
 </html>
