@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="booting">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
@@ -10,51 +10,15 @@
 <link rel="stylesheet" href="/tv-overlay.css" />
 <link rel="stylesheet" href="/src/glass-cards.css" />
 <link rel="stylesheet" href="/src/kode-mono.css" />
+<style>
+html.booting,html.booting body{background:#070709}html.booting #root{min-height:100vh}.boot-intro{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#070709;color:#fff;font-family:monospace;opacity:1;pointer-events:auto;transition:opacity .32s ease,visibility .32s ease}.boot-intro.hidden{opacity:0;visibility:hidden;pointer-events:none}.boot-intro-inner{display:flex;flex-direction:column;align-items:center;gap:12px}.boot-intro-star{font-size:18px;opacity:.7}.boot-intro-title{font-size:clamp(42px,7vw,86px);font-weight:700;letter-spacing:-.06em;line-height:1}.boot-intro-sub{font-size:11px;letter-spacing:.14em;text-transform:lowercase;opacity:.55}
+</style>
 </head>
 <body>
+<div id="boot-intro" class="boot-intro" aria-hidden="true"><div class="boot-intro-inner"><div class="boot-intro-star">✦</div><div class="boot-intro-title">Draven</div><div class="boot-intro-sub">loading interface…</div></div></div>
 <div id="root"></div>
 <script>
-(() => {
-  let replaying = false;
-  document.addEventListener('click', (event) => {
-    if (replaying) return;
-    const entry = event.target.closest?.('.entry');
-    if (!entry || entry.classList.contains('leaving')) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    entry.classList.add('leaving');
-    window.setTimeout(() => {
-      replaying = true;
-      entry.click();
-      replaying = false;
-    }, 320);
-  }, true);
-
-  document.addEventListener('click', (event) => {
-    const recent = event.target.closest?.('.recent-card, .recent-scroller, .recent-carousel, .np-bottom');
-    if (!recent) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  }, true);
-})();
+(() => { let replaying=false; document.addEventListener('click',(event)=>{if(replaying)return;const entry=event.target.closest?.('.entry');if(!entry||entry.classList.contains('leaving'))return;event.preventDefault();event.stopImmediatePropagation();entry.classList.add('leaving');window.setTimeout(()=>{replaying=true;entry.click();replaying=false},320)},true);document.addEventListener('click',(event)=>{const recent=event.target.closest?.('.recent-card,.recent-scroller,.recent-carousel,.np-bottom');if(!recent)return;event.preventDefault();event.stopImmediatePropagation()},true)})();
 </script>
-<script type="module" src="/src/react_dom_safety.js"></script>
-<script type="module" src="/src/f1_api_compat.js"></script>
-<script type="module" src="/src/preload-site.js"></script>
-<script type="module" src="/src/noise-background.js"></script>
-<script type="module" src="/src/main.jsx"></script>
-<script type="module" src="/src/enhancements.js"></script>
-<script type="module" src="/src/docx_revision_assets.js"></script>
-<script type="module" src="/src/revision_music_f1.js"></script>
-<script type="module" src="/src/recent_plays_tilt.js"></script>
-<script type="module" src="/src/adobe_icons.js"></script>
-<script type="module" src="/src/development_skills.js"></script>
-<script type="module" src="/src/f1_progress_label.js"></script>
-<script type="module" src="/src/f1_schedule.js"></script>
-<script type="module" src="/src/background_audio.js"></script>
-<script type="module" src="/src/view_counter_ui.js"></script>
-<script type="module" src="/src/gradual_blur_mount.jsx"></script>
-<script type="module" src="/src/global_click_sound.js"></script>
-<script type="module" src="/src/home_text_type.js"></script>
-</body>
-</html>
+<script type="module" src="/src/react_dom_safety.js"></script><script type="module" src="/src/f1_api_compat.js"></script><script type="module" src="/src/preload-site.js"></script><script type="module" src="/src/noise-background.js"></script><script type="module" src="/src/main.jsx"></script><script type="module" src="/src/enhancements.js"></script><script type="module" src="/src/docx_revision_assets.js"></script><script type="module" src="/src/revision_music_f1.js"></script><script type="module" src="/src/recent_plays_tilt.js"></script><script type="module" src="/src/adobe_icons.js"></script><script type="module" src="/src/development_skills.js"></script><script type="module" src="/src/f1_progress_label.js"></script><script type="module" src="/src/f1_schedule.js"></script><script type="module" src="/src/background_audio.js"></script><script type="module" src="/src/view_counter_ui.js"></script><script type="module" src="/src/gradual_blur_mount.jsx"></script><script type="module" src="/src/global_click_sound.js"></script><script type="module" src="/src/home_text_type.js"></script>
+</body></html>
