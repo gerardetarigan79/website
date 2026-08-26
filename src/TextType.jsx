@@ -10,6 +10,7 @@ const TextType = ({
   typingSpeed = 50,
   initialDelay = 0,
   pauseDuration = 2000,
+  deletePauseDuration = 1000,
   deletingSpeed = 30,
   loop = true,
   className = '',
@@ -38,6 +39,11 @@ const TextType = ({
     const { min, max } = variableSpeed;
     return Math.random() * (max - min) + min;
   }, [variableSpeed, typingSpeed]);
+  const getRandomDeleteSpeed = useCallback(() => {
+    if (!variableSpeed) return deletingSpeed;
+    const { min, max } = variableSpeed;
+    return Math.random() * (max - min) + min + (deletingSpeed - typingSpeed);
+  }, [variableSpeed, deletingSpeed, typingSpeed]);
   const getCurrentTextColor = () => textColors.length === 0 ? 'inherit' : textColors[currentTextIndex % textColors.length];
 
   useEffect(() => {
@@ -63,13 +69,15 @@ const TextType = ({
     const execute = () => {
       if (isDeleting) {
         if (displayedText === '') {
-          setIsDeleting(false);
-          if (currentTextIndex === textArray.length - 1 && !loop) return;
           onSentenceComplete?.(textArray[currentTextIndex], currentTextIndex);
-          setCurrentTextIndex(prev => (prev + 1) % textArray.length);
-          setCurrentCharIndex(0);
+          if (currentTextIndex === textArray.length - 1 && !loop) return;
+          timeout = setTimeout(() => {
+            setIsDeleting(false);
+            setCurrentTextIndex(prev => (prev + 1) % textArray.length);
+            setCurrentCharIndex(0);
+          }, deletePauseDuration);
         } else {
-          timeout = setTimeout(() => setDisplayedText(prev => prev.slice(0, -1)), deletingSpeed);
+          timeout = setTimeout(() => setDisplayedText(prev => prev.slice(0, -1)), getRandomDeleteSpeed());
         }
       } else if (currentCharIndex < processedText.length) {
         timeout = setTimeout(() => {
@@ -83,7 +91,7 @@ const TextType = ({
     };
     timeout = setTimeout(execute, currentCharIndex === 0 && !isDeleting && displayedText === '' ? initialDelay : 0);
     return () => clearTimeout(timeout);
-  }, [currentCharIndex, displayedText, isDeleting, typingSpeed, deletingSpeed, pauseDuration, textArray, currentTextIndex, loop, initialDelay, isVisible, reverseMode, variableSpeed, onSentenceComplete, getRandomSpeed]);
+  }, [currentCharIndex, displayedText, isDeleting, typingSpeed, deletingSpeed, deletePauseDuration, pauseDuration, textArray, currentTextIndex, loop, initialDelay, isVisible, reverseMode, variableSpeed, onSentenceComplete, getRandomSpeed, getRandomDeleteSpeed]);
 
   const shouldHideCursor = hideCursorWhileTyping && (currentCharIndex < (textArray[currentTextIndex] || '').length || isDeleting);
   return createElement(Component, { ref: containerRef, className: `text-type ${className}`, ...props },
