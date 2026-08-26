@@ -17,10 +17,11 @@ const mount = () => {
       text: ['Draven'],
       typingSpeed: 75,
       pauseDuration: 1500,
+      deletingSpeed: 45,
       showCursor: true,
       cursorCharacter: '|',
       variableSpeed: { min: 55, max: 95 },
-      loop: false
+      loop: true
     })
   );
 };
