@@ -72,7 +72,7 @@ const carouselStyles = `
 if (!styles.includes("/* Recent Plays: 15-track 3D carousel")) styles += carouselStyles;
 const projectStyles = `
 
-/* Projects: three workflow-focused project cards with interactive logos. */
+/* Projects: exactly three canonical project cards with interactive logos. */
 .projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}
 .projects-grid .project-card{width:auto;max-width:none;height:100%;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .3s}
 .project-logo-wrap{height:210px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 50%,#17171e,#0b0b0f 72%);position:relative}
@@ -84,9 +84,9 @@ const projectStyles = `
 .project-brand span{color:#ddd;margin-left:0}
 @media(max-width:900px){.projects-grid{grid-template-columns:1fr}.projects-grid .project-card{width:100%}}
 `;
-if (!styles.includes("/* Projects: three workflow-focused project cards")) styles += projectStyles;
+if (!styles.includes("/* Projects: exactly three canonical project cards")) styles += projectStyles;
 const preloadStyles = "\n/* Intro transition: keep the fully mounted site underneath while the entry screen fades away. */\n.entry{transition:opacity .7s ease,visibility .7s ease}.entry.exiting{opacity:0;visibility:hidden;pointer-events:none}\n";
 if (!styles.includes("/* Intro transition: keep the fully mounted site underneath")) styles += preloadStyles;
 fs.writeFileSync(stylesPath, styles);
 
-console.log("prepare-build: projects fixed with Doxa Dock, Vanta Flow, and Argo Node");
+console.log("prepare-build: canonical Projects = Doxa Dock, Vanta Flow, Argo Node");
