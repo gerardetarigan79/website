@@ -81,7 +81,7 @@ const AccordionGallery = ({ items = DEFAULT_ITEMS, defaultIndex = 2, accentColor
       const Tag = item.link ? 'a' : 'div';
       return <Tag key={i} ref={el => (panelRefs.current[i] = el)} className={`ag-panel${isActive ? ' ag-panel--active' : ''}`} style={{ borderRadius: `${radius}px` }} href={item.link || undefined} onClick={e => handleClick(i, e)} onMouseEnter={() => handleEnter(i)} onFocus={() => setActive(i)} onKeyDown={e => handleKeyDown(i, e)} role="listitem" tabIndex={0} aria-current={isActive ? 'true' : undefined} aria-label={item.label}>
         <span className="ag-panel__frame"><span className="ag-panel__media" ref={el => (mediaRefs.current[i] = el)}><img src={item.image} alt={item.alt || item.label || ''} draggable="false" /></span><span className="ag-panel__overlay" aria-hidden="true" /></span>
-        {showLabels && <span className="ag-panel__label" aria-hidden="true"><span className="ag-panel__bar" ref={el => (barRefs.current[i] = el)} /><span className="ag-panel__text" ref={el => (textRefs.current[i] = el)}>{item.label}</span></span>}
+        {showLabels && <span className="ag-panel__label" aria-hidden="true"><span className="ag-panel__bar" ref={el => (barRefs.current[i] = el)} /><span className="ag-panel__text" ref={el => (textRefs.current[i] = el)}><strong>{item.label}</strong>{item.subtitle && <small>{item.subtitle}</small>}{item.description && <p>{item.description}</p>}</span></span>}
       </Tag>;
     })}
   </div>;
