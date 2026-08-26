@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import TextType from './TextType.jsx';
 
@@ -12,16 +12,16 @@ const mount = () => {
   heading.replaceChildren(mountPoint);
 
   createRoot(mountPoint).render(
-    <TextType
-      as="span"
-      text={["Draven"]}
-      typingSpeed={75}
-      pauseDuration={1500}
-      showCursor={true}
-      cursorCharacter="|"
-      variableSpeed={{ min: 55, max: 95 }}
-      loop={false}
-    />
+    createElement(TextType, {
+      as: 'span',
+      text: ['Draven'],
+      typingSpeed: 75,
+      pauseDuration: 1500,
+      showCursor: true,
+      cursorCharacter: '|',
+      variableSpeed: { min: 55, max: 95 },
+      loop: false
+    })
   );
 };
 
