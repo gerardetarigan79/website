@@ -1,7 +1,7 @@
 import "./Noise.css";
 
 const patternRefreshInterval = 2;
-const patternAlpha = 7;
+const patternAlpha = 10;
 const canvasSize = 1024;
 
 function mountNoise() {
