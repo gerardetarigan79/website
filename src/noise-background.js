@@ -39,6 +39,9 @@ function mountNoise() {
     ctx.putImageData(imageData, 0, 0);
   };
 
+  resize();
+  drawGrain();
+
   const loop = () => {
     if (frame % patternRefreshInterval === 0) drawGrain();
     frame += 1;
@@ -46,7 +49,6 @@ function mountNoise() {
   };
 
   window.addEventListener("resize", resize);
-  resize();
   loop();
 
   window.addEventListener("beforeunload", () => {
@@ -55,8 +57,6 @@ function mountNoise() {
   }, { once: true });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", mountNoise, { once: true });
-} else {
-  mountNoise();
-}
+// This script is loaded before the React app so the noise layer exists
+// alongside the LightRays/particle background from the very first paint.
+mountNoise();
