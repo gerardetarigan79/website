@@ -20,6 +20,15 @@ if (musicStart === -1 || musicEnd === -1) {
 const musicReplacement = `function Music(){const [data,setData]=useState({recent:[],artists:[],albums:[],info:null}),[loading,setLoading]=useState(true);const load=async()=>{try{const [recent,artists,albums,info]=await Promise.all([lastfm("recent"),lastfm("artists"),lastfm("albums"),lastfm("info")]);setData({recent:recent.recenttracks?.track||[],artists:artists.topartists?.artist||[],albums:albums.topalbums?.album||[],info:info.user||null})}catch(e){}finally{setLoading(false)}};useEffect(()=>{load();const id=setInterval(load,15000);return()=>clearInterval(id)},[]);return <Page id="music" kicker="what i've been listening to" title="music"><p className="lead">live listening data from <b>Last.fm</b>, updated automatically.</p><div className="music-stats"><Stat label="Scrobbles" value={data.info?fmtNum(data.info.playcount):""}/><Stat label="Artists" value={data.info?fmtNum(data.info.artist_count):""}/><Stat label="Last.fm user" value={LASTFM_USER}/></div><div className="music-layout"><MusicList title="TOP ARTISTS · 30D" items={data.artists.slice(0,5).map(x=>({name:x.name,meta:x.playcount}))}/><div className="now-playing cursor-target"><div className="music-heading">✦ RECENT PLAYS ✦</div>{loading?<Skeleton/>:<RecentPlaysCarousel tracks={data.recent}/>}</div><MusicList title="TOP ALBUMS · 30D" items={data.albums.slice(0,6).map(x=>({name:x.name,meta:x.artist?.name}))}/></div></Page>}`;
 source = source.slice(0, musicStart) + musicReplacement + "\n" + source.slice(musicEnd);
 
+const projectsStart = source.indexOf("function Projects()");
+const projectsEnd = source.indexOf("function Skills(", projectsStart);
+if (projectsStart === -1 || projectsEnd === -1) {
+  throw new Error("prepare-build: could not find Projects block in src/main.jsx");
+}
+
+const projectsReplacement = `function Projects(){const projects=[{name:"Doxa Dock",subtitle:"private user application",description:"Lightweight client utility and automation dashboard I built to give me deeper control over account workflows. It streamlines daily tasks with custom scripts, real-time activity logging, and tailored profile.",logo:"/projects/doxa.png",className:"doxa"},{name:"Vanta Flow",subtitle:"After Effects workflow plugin",description:"An After Effects plugin built around essential tools, shortcuts, presets, and workflow utilities to make editing faster and more efficient.",logo:"/projects/vanta.png",className:"vanta"},{name:"Argo Node",subtitle:"Discord utility bot",description:"discord utility bot i made for fun",logo:"/projects/argo.png",className:"argo"}];return <Page id="projects" kicker="my work" title="projects"><p className="lead">projects i build to improve my workflow.</p><div className="projects-grid">{projects.map(project=><div className={\`project-card project-card-\${project.className} cursor-target\`} key={project.name}><div className="project-logo-wrap"><img className="project-logo" src={project.logo} alt={project.name}/></div><div className="project-body"><div className="project-brand"><span>{project.name}</span></div><h2>{project.subtitle}</h2><p>{project.description}</p></div></div>)}</div></Page>}`;
+source = source.slice(0, projectsStart) + projectsReplacement + "\n" + source.slice(projectsEnd);
+
 const start = source.indexOf("function Entry({onEnter}");
 const endMarker = "createRoot(document.getElementById(\"root\")).render(<App/>);";
 const end = source.indexOf(endMarker, start);
@@ -61,6 +70,21 @@ const carouselStyles = `
 @media(max-width:850px){.recent-card{width:210px}.recent-art-wrap,.recent-cover{width:210px}.recent-art-wrap{height:245px}.recent-cd{width:220px;height:220px}.recent-cover{height:210px}.lastfm-boundary-card{width:210px;height:330px}.recent-carousel{height:400px}}
 `;
 if (!styles.includes("/* Recent Plays: 15-track 3D carousel")) styles += carouselStyles;
+const projectStyles = `
+
+/* Projects: three workflow-focused project cards with interactive logos. */
+.projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}
+.projects-grid .project-card{width:auto;max-width:none;height:100%;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .3s}
+.project-logo-wrap{height:210px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 50%,#17171e,#0b0b0f 72%);position:relative}
+.project-logo{width:120px;height:120px;object-fit:contain;display:block;filter:drop-shadow(0 18px 28px #000);transition:transform .45s cubic-bezier(.2,.8,.2,1),filter .45s ease}
+.project-card:hover .project-logo{transform:translateY(-5px) scale(1.08) rotate(2deg);filter:drop-shadow(0 22px 34px #000) drop-shadow(0 0 22px #6a029755)}
+.project-card-vanta:hover .project-logo{transform:translateY(-5px) scale(1.08) rotate(-2deg)}
+.project-card-argo:hover .project-logo{transform:translateY(-5px) scale(1.08) rotate(3deg)}
+.project-body{flex:1}
+.project-brand span{color:#ddd;margin-left:0}
+@media(max-width:900px){.projects-grid{grid-template-columns:1fr}.projects-grid .project-card{width:100%}}
+`;
+if (!styles.includes("/* Projects: three workflow-focused project cards")) styles += projectStyles;
 const preloadStyles = "\n/* Intro transition: keep the fully mounted site underneath while the entry screen fades away. */\n.entry{transition:opacity .7s ease,visibility .7s ease}.entry.exiting{opacity:0;visibility:hidden;pointer-events:none}\n";
 if (!styles.includes("/* Intro transition: keep the fully mounted site underneath")) styles += preloadStyles;
 fs.writeFileSync(stylesPath, styles);
