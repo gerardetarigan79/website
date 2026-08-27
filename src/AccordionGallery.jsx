@@ -41,7 +41,9 @@ const AccordionGallery = ({ items = DEFAULT_ITEMS, defaultIndex = 2, accentColor
       }
       if (showLabels && bar && text) {
         if (isActive) tl.to([bar, text], { opacity: 1, x: 0, duration: dur, ease, stagger: prefersReduced ? 0 : stagger }, 0);
-        else tl.to([bar, text], { opacity: 0, x: -14, duration: dur * 0.6, ease }, 0);
+        else tl.to(bar, { opacity: 0, duration: dur * 0.6, ease }, 0);
+        // Keep the project title/name visible at all times. Subtitle and description are controlled by CSS on hover/focus.
+        gsap.set(text, { opacity: 1, x: 0 });
       }
     });
     tlRef.current = tl;
