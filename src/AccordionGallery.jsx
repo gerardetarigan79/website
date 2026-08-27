@@ -35,7 +35,7 @@ const AccordionGallery = ({ items = DEFAULT_ITEMS, defaultIndex = 2, accentColor
         const drift = Math.max(-1.5, Math.min(1.5, active - i));
         const shift = drift * parallax * mediaSize * 0.06;
         const gray = grayscale ? (isActive ? 0 : 1) : 0;
-        gsap.to(media, { xPercent: -50, yPercent: -50, x: vertical ? 0 : isActive ? 0 : shift, y: vertical ? (isActive ? 0 : shift) : 0, '--ag-gray': gray, '--ag-dim': isActive ? 0 : 0.35, duration: dur, ease });
+        gsap.to(media, { xPercent: 0, yPercent: 0, x: vertical ? 0 : isActive ? 0 : shift, y: vertical ? (isActive ? 0 : shift) : 0, '--ag-gray': gray, '--ag-dim': isActive ? 0 : 0.35, duration: dur, ease });
       }
       if (showLabels && bar && text) {
         gsap.set(text, { opacity: 1, x: 0 });
