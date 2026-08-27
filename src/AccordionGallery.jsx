@@ -75,7 +75,7 @@ const AccordionGallery = ({ items = DEFAULT_ITEMS, defaultIndex = 2, accentColor
     {items.map((item, i) => {
       const isActive = i === active;
       const Tag = item.link ? 'a' : 'div';
-      return <Tag key={i} ref={el => (panelRefs.current[i] = el)} className={`ag-panel${isActive ? ' ag-panel--active' : ''}`} style={{ borderRadius: `${radius}px` }} href={item.link || undefined} onClick={e => handleClick(i, e)} onMouseEnter={() => handleEnter(i)} onFocus={() => setActive(i)} onKeyDown={e => handleKeyDown(i, e)} role="listitem" tabIndex={0} aria-current={isActive ? 'true' : undefined} aria-label={item.label}>
+      return <Tag key={i} ref={el => (panelRefs.current[i] = el)} className={`ag-panel cursor-target${isActive ? ' ag-panel--active' : ''}`} style={{ borderRadius: `${radius}px` }} href={item.link || undefined} onClick={e => handleClick(i, e)} onMouseEnter={() => handleEnter(i)} onFocus={() => setActive(i)} onKeyDown={e => handleKeyDown(i, e)} role="listitem" tabIndex={0} aria-current={isActive ? 'true' : undefined} aria-label={item.label}>
         <span className="ag-panel__frame">
           <span className="ag-panel__media" ref={el => (mediaRefs.current[i] = el)}><img src={item.image} alt={item.alt || item.label || ''} draggable="false" /></span>
           <span className="ag-panel__overlay" aria-hidden="true" />
