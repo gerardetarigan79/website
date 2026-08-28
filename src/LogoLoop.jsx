@@ -45,31 +45,47 @@ const useImageLoader = (seqRef, onLoad, dependencies) => {
 
 const useAnimationLoop = (trackRef, targetVelocity, seqWidth, seqHeight, isHovered, hoverSpeed, isVertical) => {
   const rafRef = useRef(null), lastTimestampRef = useRef(null), offsetRef = useRef(0), velocityRef = useRef(0);
+
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
+
     const seqSize = isVertical ? seqHeight : seqWidth;
     if (seqSize > 0) {
       offsetRef.current = ((offsetRef.current % seqSize) + seqSize) % seqSize;
-      track.style.transform = isVertical ? `translate3d(0, ${-offsetRef.current}px, 0)` : `translate3d(${-offsetRef.current}px, 0, 0)`;
+      track.style.transform = isVertical
+        ? `translate3d(0, ${-offsetRef.current}px, 0)`
+        : `translate3d(${-offsetRef.current}px, 0, 0)`;
     }
+
+    lastTimestampRef.current = null;
+
     const animate = timestamp => {
       if (lastTimestampRef.current === null) lastTimestampRef.current = timestamp;
-      const deltaTime = Math.max(0, timestamp - lastTimestampRef.current) / 1000;
+      const deltaTime = Math.min(0.05, Math.max(0, timestamp - lastTimestampRef.current) / 1000);
       lastTimestampRef.current = timestamp;
+
       const target = isHovered && hoverSpeed !== undefined ? hoverSpeed : targetVelocity;
       const easingFactor = 1 - Math.exp(-deltaTime / ANIMATION_CONFIG.SMOOTH_TAU);
       velocityRef.current += (target - velocityRef.current) * easingFactor;
+
       if (seqSize > 0) {
         let nextOffset = offsetRef.current + velocityRef.current * deltaTime;
         nextOffset = ((nextOffset % seqSize) + seqSize) % seqSize;
         offsetRef.current = nextOffset;
-        track.style.transform = isVertical ? `translate3d(0, ${-offsetRef.current}px, 0)` : `translate3d(${-offsetRef.current}px, 0, 0)`;
+        track.style.transform = isVertical
+          ? `translate3d(0, ${-nextOffset}px, 0)`
+          : `translate3d(${-nextOffset}px, 0, 0)`;
       }
       rafRef.current = requestAnimationFrame(animate);
     };
+
     rafRef.current = requestAnimationFrame(animate);
-    return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); rafRef.current = null; lastTimestampRef.current = null; };
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      lastTimestampRef.current = null;
+    };
   }, [targetVelocity, seqWidth, seqHeight, isHovered, hoverSpeed, isVertical, trackRef]);
 };
 
@@ -87,7 +103,7 @@ export const LogoLoop = memo(({ logos, speed=120, direction='left', width='100%'
   const rootClassName=useMemo(()=>['logoloop',isVertical?'logoloop--vertical':'logoloop--horizontal',fadeOut&&'logoloop--fade',scaleOnHover&&'logoloop--scale-hover',className].filter(Boolean).join(' '),[isVertical,fadeOut,scaleOnHover,className]);
   const handleMouseEnter=useCallback(()=>{if(effectiveHoverSpeed!==undefined)setIsHovered(true)},[effectiveHoverSpeed]);
   const handleMouseLeave=useCallback(()=>{if(effectiveHoverSpeed!==undefined)setIsHovered(false)},[effectiveHoverSpeed]);
-  const renderLogoItem=useCallback((item,key)=>{if(renderItem)return <li className="logoloop__item" key={key} role="listitem">{renderItem(item,key)}</li>;const isNodeItem='node' in item;const content=isNodeItem?<span className="logoloop__node" aria-hidden={!!item.href&&!item.ariaLabel}>{item.node}</span>:<img src={item.src} srcSet={item.srcSet} sizes={item.sizes} width={item.width} height={item.height} alt={item.alt??''} title={item.title} loading="lazy" decoding="async" draggable={false}/>;const itemAriaLabel=isNodeItem?(item.ariaLabel??item.title):(item.alt??item.title);const itemContent=item.href?<a className="logoloop__link" href={item.href} aria-label={itemAriaLabel||'logo link'} target="_blank" rel="noreferrer noopener">{content}</a>:content;return <li className="logoloop__item" key={key} role="listitem">{itemContent}</li>},[renderItem]);
+  const renderLogoItem=useCallback((item,key)=>{if(renderItem)return <li className="logoloop__item" key={key} role="listitem">{renderItem(item,key)}</li>;const isNodeItem='node' in item;const content=isNodeItem?<span className="logoloop__node" aria-hidden={!!item.href&&!item.ariaLabel}>{item.node}</span>:<img src={item.src} srcSet={item.srcSet} sizes={item.sizes} width={item.width} height={item.height} alt={item.alt??''} title={item.title} loading="eager" decoding="async" draggable={false}/>;const itemAriaLabel=isNodeItem?(item.ariaLabel??item.title):(item.alt??item.title);const itemContent=item.href?<a className="logoloop__link" href={item.href} aria-label={itemAriaLabel||'logo link'} target="_blank" rel="noreferrer noopener">{content}</a>:content;return <li className="logoloop__item" key={key} role="listitem">{itemContent}</li>},[renderItem]);
   const logoLists=useMemo(()=>Array.from({length:copyCount},(_,copyIndex)=><ul className="logoloop__list" key={`copy-${copyIndex}`} role="list" aria-hidden={copyIndex>0} ref={copyIndex===0?seqRef:undefined}>{logos.map((item,itemIndex)=>renderLogoItem(item,`${copyIndex}-${itemIndex}`))}</ul>),[copyCount,logos,renderLogoItem]);
   const containerStyle=useMemo(()=>({width:isVertical?(toCssLength(width)==='100%'?undefined:toCssLength(width)):(toCssLength(width)??'100%'),...cssVariables,...style}),[width,cssVariables,style,isVertical]);
   return <div ref={containerRef} className={rootClassName} style={containerStyle} role="region" aria-label={ariaLabel}><div className="logoloop__track" ref={trackRef} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>{logoLists}</div></div>;
