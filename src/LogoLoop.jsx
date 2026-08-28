@@ -70,8 +70,8 @@ const useAnimationLoop = (trackRef, targetVelocity, seqWidth, seqHeight, isHover
       velocityRef.current += (target - velocityRef.current) * easingFactor;
 
       if (seqSize > 0) {
-        let nextOffset = offsetRef.current + velocityRef.current * deltaTime;
-        nextOffset = ((nextOffset % seqSize) + seqSize) % seqSize;
+        const rawOffset = offsetRef.current + velocityRef.current * deltaTime;
+        const nextOffset = ((rawOffset % seqSize) + seqSize) % seqSize;
         offsetRef.current = nextOffset;
         track.style.transform = isVertical
           ? `translate3d(0, ${-nextOffset}px, 0)`
@@ -95,7 +95,7 @@ export const LogoLoop = memo(({ logos, speed=120, direction='left', width='100%'
   const effectiveHoverSpeed=useMemo(()=>hoverSpeed!==undefined?hoverSpeed:pauseOnHover===true?0:pauseOnHover===false?undefined:0,[hoverSpeed,pauseOnHover]);
   const isVertical=direction==='up'||direction==='down';
   const targetVelocity=useMemo(()=>{const magnitude=Math.abs(speed);const directionMultiplier=isVertical?(direction==='up'?1:-1):(direction==='left'?1:-1);return magnitude*directionMultiplier*(speed<0?-1:1)},[speed,direction,isVertical]);
-  const updateDimensions=useCallback(()=>{const containerWidth=containerRef.current?.clientWidth??0;const rect=seqRef.current?.getBoundingClientRect?.();const sequenceWidth=rect?.width??0,sequenceHeight=rect?.height??0;if(isVertical){const parentHeight=containerRef.current?.parentElement?.clientHeight??0;if(containerRef.current&&parentHeight>0){const targetHeight=Math.ceil(parentHeight);if(containerRef.current.style.height!==`${targetHeight}px`)containerRef.current.style.height=`${targetHeight}px`;}if(sequenceHeight>0){setSeqHeight(Math.ceil(sequenceHeight));const viewport=containerRef.current?.clientHeight??parentHeight??sequenceHeight;setCopyCount(Math.max(ANIMATION_CONFIG.MIN_COPIES,Math.ceil(viewport/sequenceHeight)+ANIMATION_CONFIG.COPY_HEADROOM));}}else if(sequenceWidth>0){setSeqWidth(Math.ceil(sequenceWidth));setCopyCount(Math.max(ANIMATION_CONFIG.MIN_COPIES,Math.ceil(containerWidth/sequenceWidth)+ANIMATION_CONFIG.COPY_HEADROOM));}},[isVertical]);
+  const updateDimensions=useCallback(()=>{const containerWidth=containerRef.current?.clientWidth??0;const firstSequence=seqRef.current;if(!firstSequence)return;const sequenceWidth=firstSequence.scrollWidth;const sequenceHeight=firstSequence.scrollHeight;if(isVertical){const parentHeight=containerRef.current?.parentElement?.clientHeight??0;if(containerRef.current&&parentHeight>0){const targetHeight=Math.ceil(parentHeight);if(containerRef.current.style.height!==`${targetHeight}px`)containerRef.current.style.height=`${targetHeight}px`;}if(sequenceHeight>0){setSeqHeight(sequenceHeight);const viewport=containerRef.current?.clientHeight??parentHeight??sequenceHeight;setCopyCount(Math.max(ANIMATION_CONFIG.MIN_COPIES,Math.ceil(viewport/sequenceHeight)+ANIMATION_CONFIG.COPY_HEADROOM));}}else if(sequenceWidth>0){setSeqWidth(sequenceWidth);setCopyCount(Math.max(ANIMATION_CONFIG.MIN_COPIES,Math.ceil(containerWidth/sequenceWidth)+ANIMATION_CONFIG.COPY_HEADROOM));}},[isVertical]);
   useResizeObserver(updateDimensions,[containerRef,seqRef],[logos,gap,logoHeight,isVertical]);
   useImageLoader(seqRef,updateDimensions,[logos,gap,logoHeight,isVertical]);
   useAnimationLoop(trackRef,targetVelocity,seqWidth,seqHeight,isHovered,effectiveHoverSpeed,isVertical);
