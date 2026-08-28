@@ -82,13 +82,12 @@ const AccordionGallery = ({ items = DEFAULT_ITEMS, defaultIndex = 2, accentColor
         </span>
         {showLabels && <span className="ag-panel__content" aria-hidden="true">
           <span className="ag-panel__label">
-            <span className="ag-panel__bar" ref={el => (barRefs.current[i] = el)} />
             <span className="ag-panel__text" ref={el => (textRefs.current[i] = el)}>
               <span className="ag-panel__text-content">
                 <strong className="ag-panel__title">{item.label}</strong>
                 <span className="ag-panel__details">
                   {item.subtitle && <small>{item.subtitle}</small>}
-                  {item.description && <p>{item.description}</p>}
+                  {item.description && <span className="ag-panel__description-row"><span className="ag-panel__description-line" ref={el => (barRefs.current[i] = el)} /><p className="ag-panel__description">{item.description}</p></span>}
                 </span>
               </span>
             </span>
