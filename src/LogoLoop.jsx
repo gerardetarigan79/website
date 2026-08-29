@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, memo } from 'react';
 import './LogoLoop.css';
 
 const ANIMATION_CONFIG = { SMOOTH_TAU: 0.25, MIN_COPIES: 2, COPY_HEADROOM: 2 };
+const CREATIVE_CLOUD_LOGO = 'https://www.acquia.com/sites/default/files/styles/large/public/media/image/2023-08/Adobe%20Creative%20Cloud%20Logo_Integration.png?itok=5XsY_hFb';
 const toCssLength = value => (typeof value === 'number' ? `${value}px` : (value ?? undefined));
 
 const useResizeObserver = (callback, elements, dependencies) => {
@@ -123,7 +124,15 @@ export const LogoLoop = memo(({ logos, speed=120, direction='left', width='100%'
 
   const cssVariables=useMemo(()=>({'--logoloop-gap':`${gap}px`,'--logoloop-logoHeight':`${logoHeight}px`,...(fadeOutColor&&{'--logoloop-fadeColor':fadeOutColor})}),[gap,logoHeight,fadeOutColor]);
   const rootClassName=useMemo(()=>['logoloop',isVertical?'logoloop--vertical':'logoloop--horizontal',fadeOut&&'logoloop--fade',scaleOnHover&&'logoloop--scale-hover',className].filter(Boolean).join(' '),[isVertical,fadeOut,scaleOnHover,className]);
-  const renderLogoItem=useCallback((item,key)=>{if(renderItem)return <li className="logoloop__item" key={key} role="listitem">{renderItem(item,key)}</li>;const isNodeItem='node' in item;const content=isNodeItem?<span className="logoloop__node" aria-hidden={!!item.href&&!item.ariaLabel}>{item.node}</span>:<img src={item.src} srcSet={item.srcSet} sizes={item.sizes} width={item.width} height={item.height} alt={item.alt??''} title={item.title} loading="eager" decoding="async" draggable={false}/>;const itemAriaLabel=isNodeItem?(item.ariaLabel??item.title):(item.alt??item.title);const itemContent=item.href?<a className="logoloop__link" href={item.href} aria-label={itemAriaLabel||'logo link'} target="_blank" rel="noreferrer noopener">{content}</a>:content;return <li className="logoloop__item" key={key} role="listitem">{itemContent}</li>},[renderItem]);
+  const renderLogoItem=useCallback((item,key)=>{
+    if(renderItem)return <li className="logoloop__item" key={key} role="listitem">{renderItem(item,key)}</li>;
+    const isNodeItem='node' in item;
+    const isCreativeCloud=item.title==='Adobe Media Encoder';
+    const content=isNodeItem?<span className="logoloop__node" aria-hidden={!!item.href&&!item.ariaLabel}>{item.node}</span>:<img src={isCreativeCloud?CREATIVE_CLOUD_LOGO:item.src} srcSet={isCreativeCloud?undefined:item.srcSet} sizes={item.sizes} width={item.width} height={item.height} alt={isCreativeCloud?'Adobe Creative Cloud':(item.alt??'')} title={isCreativeCloud?'Adobe Creative Cloud':item.title} loading="eager" decoding="async" draggable={false}/>;
+    const itemAriaLabel=isNodeItem?(item.ariaLabel??item.title):(isCreativeCloud?'Adobe Creative Cloud':(item.alt??item.title));
+    const itemContent=item.href?<a className="logoloop__link" href={item.href} aria-label={itemAriaLabel||'logo link'} target="_blank" rel="noreferrer noopener">{content}</a>:content;
+    return <li className="logoloop__item" key={key} role="listitem">{itemContent}</li>;
+  },[renderItem]);
   const logoLists=useMemo(()=>Array.from({length:copyCount},(_,copyIndex)=><ul className="logoloop__list" key={`copy-${copyIndex}`} role="list" aria-hidden={copyIndex>0} ref={copyIndex===0?seqRef:undefined}>{logos.map((item,itemIndex)=>renderLogoItem(item,`${copyIndex}-${itemIndex}`))}</ul>),[copyCount,logos,renderLogoItem]);
   const containerStyle=useMemo(()=>({width:isVertical?(toCssLength(width)==='100%'?undefined:toCssLength(width)):(toCssLength(width)??'100%'),...cssVariables,...style}),[width,cssVariables,style,isVertical]);
   return <div ref={containerRef} className={rootClassName} style={containerStyle} role="region" aria-label={ariaLabel}><div className="logoloop__track" ref={trackRef}>{logoLists}</div></div>;
