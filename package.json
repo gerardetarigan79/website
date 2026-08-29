@@ -4,14 +4,13 @@
   "version": "2.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/logo-loop-fix.js && node scripts/fix-views.js && node scripts/replace-adobe-creative-cloud-logo.js && vite",
-    "build": "node scripts/logo-loop-fix.js && node scripts/prepare-build.js && node scripts/wire-projects-accordion.js && node scripts/fix-views.js && node scripts/replace-adobe-creative-cloud-logo.js && vite build",
+    "dev": "node scripts/replace-adobe-creative-cloud-logo.js && node scripts/logo-loop-fix.js && node scripts/fix-views.js && vite",
+    "build": "node scripts/replace-adobe-creative-cloud-logo.js && node scripts/logo-loop-fix.js && node scripts/prepare-build.js && node scripts/wire-projects-accordion.js && node scripts/fix-views.js && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@vitejs/plugin-react": "^4.6.0",
-    "gsap": "^3.13.0",
     "lucide-react": "^0.468.0",
     "motion": "^12.23.24",
     "ogl": "^1.0.11",
