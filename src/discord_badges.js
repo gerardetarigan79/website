@@ -24,12 +24,12 @@ function renderDiscordBadges() {
       img.src = src;
       img.alt = title;
       img.title = title;
-      img.width = 22;
-      img.height = 22;
+      img.width = 16;
+      img.height = 16;
       img.loading = "eager";
       img.decoding = "async";
-      img.style.width = "22px";
-      img.style.height = "22px";
+      img.style.width = "16px";
+      img.style.height = "16px";
       img.style.objectFit = "contain";
       img.style.display = "block";
       return img;
