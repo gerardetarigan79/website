@@ -42,6 +42,18 @@
 .cursor-target:has(.cursor-target) { pointer-events: none; }
 .cursor-target:has(.cursor-target) .cursor-target { pointer-events: auto; }
 
+/* LogoLoop skills containers use the same target-active state as the other interactive boxes. */
+.skill-logo-loop {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.skill-logo-loop.target-active {
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.25);
+}
+
 /* The featured Recent Plays card is transparent; keep its CD, header, and track text untouched. */
 .now-playing,
 .now-playing::before,
