@@ -13,9 +13,9 @@ const getContainingBlock = element => {
 };
 const getContainingBlockOffset = block => block ? (() => { const r = block.getBoundingClientRect(); return {x:r.left+block.clientLeft,y:r.top+block.clientTop}; })() : {x:0,y:0};
 
-const TargetCursor = ({targetSelector='.cursor-target',spinDuration=2,hideDefaultCursor=true,hoverDuration=.2,parallaxOn=true,cursorColor='#ffffff',cursorColorOnTarget}) => {
+const TargetCursor = ({targetSelector='.cursor-target, .skill-logo-loop',spinDuration=2,hideDefaultCursor=true,hoverDuration=.2,parallaxOn=true,cursorColor='#ffffff',cursorColorOnTarget}) => {
   const cursorRef=useRef(null),cornersRef=useRef(null),spinTl=useRef(null),dotRef=useRef(null),containingBlockRef=useRef(null),targetCornerPositionsRef=useRef(null),tickerFnRef=useRef(null),activeStrengthRef=useRef(0);
-  const isMobile=useMemo(()=>typeof window==='undefined'?false:(('ontouchstart' in window||navigator.maxTouchPoints>0)&&window.innerWidth<=768)||/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test((navigator.userAgent||'').toLowerCase()),[]);
+  const isMobile=useMemo(()=>typeof window==='undefined'?false:((('ontouchstart' in window||navigator.maxTouchPoints>0)&&window.innerWidth<=768)||/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test((navigator.userAgent||'').toLowerCase())),[]);
   const constants=useMemo(()=>({borderWidth:3,cornerSize:12}),[]);
   const moveCursor=useCallback((x,y)=>{if(!cursorRef.current)return;const o=getContainingBlockOffset(containingBlockRef.current);gsap.to(cursorRef.current,{x:x-o.x,y:y-o.y,duration:.1,ease:'power3.out'});},[]);
   useEffect(()=>{
@@ -36,8 +36,6 @@ const TargetCursor = ({targetSelector='.cursor-target',spinDuration=2,hideDefaul
     const tickerFn=()=>{
       if(!targetCornerPositionsRef.current||!cursorRef.current||!cornersRef.current)return;
       const strength=activeStrengthRef.current;if(strength===0)return;
-      // Re-measure every frame so the target cursor follows layout/transform animations,
-      // including the accordion panels expanding and contracting.
       updateTargetCornerPositions();
       if(!targetCornerPositionsRef.current)return;
       const cursorX=gsap.getProperty(cursorRef.current,'x'),cursorY=gsap.getProperty(cursorRef.current,'y');
