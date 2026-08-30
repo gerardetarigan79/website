@@ -1,7 +1,2 @@
-/* LogoLoop card treatment only — the skill heading stays outside. */
-.skill-logo-loop{position:relative;overflow:hidden;transform-style:preserve-3d;transition:transform .28s cubic-bezier(.2,.8,.2,1),border-color .28s,box-shadow .28s,background .28s}
-.skill-logo-loop::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:20;opacity:.065;background:repeating-linear-gradient(0deg,rgba(255,255,255,.11) 0,rgba(255,255,255,.11) 1px,transparent 1px,transparent 4px);mix-blend-mode:screen}
-.skill-logo-loop::after{content:"";position:absolute;inset:-45%;pointer-events:none;z-index:19;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(106,2,151,.30),transparent 55%);filter:blur(22px);transition:opacity .28s ease}
-.skill-logo-loop:hover,.skill-logo-loop.target-active{transform:translateY(-3px) perspective(800px) rotateX(.7deg);border-color:#4b3560!important;box-shadow:0 14px 55px rgba(106,2,151,.18),0 8px 30px rgba(4,75,168,.07),inset 0 1px 0 rgba(255,255,255,.035)!important}
-.skill-logo-loop:hover::after,.skill-logo-loop.target-active::after{opacity:1}
-@media(prefers-reduced-motion:reduce){.skill-logo-loop{transition:none}.skill-logo-loop:hover,.skill-logo-loop.target-active{transform:none}.skill-logo-loop::after{transition:none}}
+/* LogoLoop has no card/container treatment. */
+.skill-logo-loop{display:contents!important}
