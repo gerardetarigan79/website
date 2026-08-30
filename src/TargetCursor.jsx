@@ -13,7 +13,7 @@ const getContainingBlock = element => {
 };
 const getContainingBlockOffset = block => block ? (() => { const r = block.getBoundingClientRect(); return {x:r.left+block.clientLeft,y:r.top+block.clientTop}; })() : {x:0,y:0};
 
-const TargetCursor = ({targetSelector='.cursor-target, .skill-logo-loop',spinDuration=2,hideDefaultCursor=true,hoverDuration=.2,parallaxOn=true,cursorColor='#ffffff',cursorColorOnTarget}) => {
+const TargetCursor = ({targetSelector='.cursor-target:not(.skill-group), .skill-logo-loop',spinDuration=2,hideDefaultCursor=true,hoverDuration=.2,parallaxOn=true,cursorColor='#ffffff',cursorColorOnTarget}) => {
   const cursorRef=useRef(null),cornersRef=useRef(null),spinTl=useRef(null),dotRef=useRef(null),containingBlockRef=useRef(null),targetCornerPositionsRef=useRef(null),tickerFnRef=useRef(null),activeStrengthRef=useRef(0);
   const isMobile=useMemo(()=>typeof window==='undefined'?false:((('ontouchstart' in window||navigator.maxTouchPoints>0)&&window.innerWidth<=768)||/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test((navigator.userAgent||'').toLowerCase())),[]);
   const constants=useMemo(()=>({borderWidth:3,cornerSize:12}),[]);
@@ -25,22 +25,10 @@ const TargetCursor = ({targetSelector='.cursor-target, .skill-logo-loop',spinDur
     let activeTarget=null,currentLeaveHandler=null,lastMouseX=window.innerWidth/2,lastMouseY=window.innerHeight/2;
     const cleanupTarget=target=>{if(currentLeaveHandler)target.removeEventListener('mouseleave',currentLeaveHandler);currentLeaveHandler=null;};
     const startSpin=()=>{if(!cursorRef.current)return;spinTl.current?.kill();gsap.killTweensOf(cursorRef.current,'rotation');spinTl.current=gsap.timeline({repeat:-1}).to(cursorRef.current,{rotation:'+=360',duration:spinDuration,ease:'none'});};
-    const updateTargetCornerPositions=()=>{
-      if(!activeTarget)return;
-      const rect=activeTarget.getBoundingClientRect(),{borderWidth,cornerSize}=constants,{x:offsetX,y:offsetY}=getOffset();
-      targetCornerPositionsRef.current=[{x:rect.left-borderWidth-offsetX,y:rect.top-borderWidth-offsetY},{x:rect.right+borderWidth-cornerSize-offsetX,y:rect.top-borderWidth-offsetY},{x:rect.right+borderWidth-cornerSize-offsetX,y:rect.bottom+borderWidth-cornerSize-offsetY},{x:rect.left-borderWidth-offsetX,y:rect.bottom+borderWidth-cornerSize-offsetY}];
-    };
+    const updateTargetCornerPositions=()=>{if(!activeTarget)return;const rect=activeTarget.getBoundingClientRect(),{borderWidth,cornerSize}=constants,{x:offsetX,y:offsetY}=getOffset();targetCornerPositionsRef.current=[{x:rect.left-borderWidth-offsetX,y:rect.top-borderWidth-offsetY},{x:rect.right+borderWidth-cornerSize-offsetX,y:rect.top-borderWidth-offsetY},{x:rect.right+borderWidth-cornerSize-offsetX,y:rect.bottom+borderWidth-cornerSize-offsetY},{x:rect.left-borderWidth-offsetX,y:rect.bottom+borderWidth-cornerSize-offsetY}];};
     const clearActiveTarget=()=>{if(!activeTarget)return;cleanupTarget(activeTarget);activeTarget=null;targetCornerPositionsRef.current=null;gsap.set(activeStrengthRef,{current:0,overwrite:true});if(cursorColorOnTarget){gsap.to(cornersRef.current,{borderColor:cursorColor,duration:.15,ease:'power2.out'});if(dotRef.current)gsap.to(dotRef.current,{backgroundColor:cursorColor,duration:.15,ease:'power2.out'});}const positions=[{x:-18,y:-18},{x:6,y:-18},{x:6,y:6},{x:-18,y:6}],tl=gsap.timeline();Array.from(cornersRef.current||[]).forEach((corner,index)=>tl.to(corner,{...positions[index],duration:.3,ease:'power3.out'},0));gsap.ticker.remove(tickerFnRef.current);startSpin();};
-    const initialOffset=getOffset();gsap.set(cursor,{xPercent:-50,yPercent:-50,x:window.innerWidth/2-initialOffset.x,y:window.innerHeight/2-initialOffset.y});
-    startSpin();
-    const tickerFn=()=>{
-      if(!targetCornerPositionsRef.current||!cursorRef.current||!cornersRef.current)return;
-      const strength=activeStrengthRef.current;if(strength===0)return;
-      updateTargetCornerPositions();
-      if(!targetCornerPositionsRef.current)return;
-      const cursorX=gsap.getProperty(cursorRef.current,'x'),cursorY=gsap.getProperty(cursorRef.current,'y');
-      Array.from(cornersRef.current).forEach((corner,i)=>{const currentX=gsap.getProperty(corner,'x'),currentY=gsap.getProperty(corner,'y'),targetX=targetCornerPositionsRef.current[i].x-cursorX,targetY=targetCornerPositionsRef.current[i].y-cursorY,finalX=currentX+(targetX-currentX)*strength,finalY=currentY+(targetY-currentY)*strength,duration=strength>=.99?(parallaxOn?.2:0):.05;gsap.to(corner,{x:finalX,y:finalY,duration,ease:duration===0?'none':'power1.out',overwrite:'auto'});});
-    };tickerFnRef.current=tickerFn;
+    const initialOffset=getOffset();gsap.set(cursor,{xPercent:-50,yPercent:-50,x:window.innerWidth/2-initialOffset.x,y:window.innerHeight/2-initialOffset.y});startSpin();
+    const tickerFn=()=>{if(!targetCornerPositionsRef.current||!cursorRef.current||!cornersRef.current)return;const strength=activeStrengthRef.current;if(strength===0)return;updateTargetCornerPositions();if(!targetCornerPositionsRef.current)return;const cursorX=gsap.getProperty(cursorRef.current,'x'),cursorY=gsap.getProperty(cursorRef.current,'y');Array.from(cornersRef.current).forEach((corner,i)=>{const currentX=gsap.getProperty(corner,'x'),currentY=gsap.getProperty(corner,'y'),targetX=targetCornerPositionsRef.current[i].x-cursorX,targetY=targetCornerPositionsRef.current[i].y-cursorY,finalX=currentX+(targetX-currentX)*strength,finalY=currentY+(targetY-currentY)*strength,duration=strength>=.99?(parallaxOn?.2:0):.05;gsap.to(corner,{x:finalX,y:finalY,duration,ease:duration===0?'none':'power1.out',overwrite:'auto'});});};tickerFnRef.current=tickerFn;
     const moveHandler=e=>{lastMouseX=e.clientX;lastMouseY=e.clientY;moveCursor(e.clientX,e.clientY);};window.addEventListener('mousemove',moveHandler);
     const mouseDownHandler=()=>{if(dotRef.current)gsap.to(dotRef.current,{scale:.7,duration:.3});gsap.to(cursorRef.current,{scale:.9,duration:.2});};const mouseUpHandler=()=>{if(dotRef.current)gsap.to(dotRef.current,{scale:1,duration:.3});gsap.to(cursorRef.current,{scale:1,duration:.2});};window.addEventListener('mousedown',mouseDownHandler);window.addEventListener('mouseup',mouseUpHandler);
     const findTarget=element=>{if(!element?.closest)return null;const target=element.closest(targetSelector);return target&&target!==cursor&&document.body.contains(target)?target:null;};
