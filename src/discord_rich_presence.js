@@ -14,36 +14,23 @@
       .rich-presence-top{display:flex;align-items:center;gap:8px;min-width:0}
       .rich-presence-name{font-size:11px;color:#ddd;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .rich-presence-tag{font-size:8px;color:#555;white-space:nowrap}
-      .rich-presence-status{display:flex;align-items:center;gap:5px;margin-top:3px;font-size:8px;color:#666}
-      .rich-presence-devices{display:flex;gap:4px;margin-left:2px}
-      .rich-presence-device{font-size:7px;color:#777;border:1px solid #29292f;background:#141419;border-radius:4px;padding:2px 4px}
-      .rich-presence-activities{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-      .rich-activity{display:grid;grid-template-columns:34px minmax(0,1fr);gap:8px;padding:6px 7px;border:1px solid #222229;border-radius:5px;background:rgba(10,10,14,.55);min-width:0}
-      .rich-activity-art{width:34px;height:34px;border-radius:5px;object-fit:cover;background:#18181e;border:1px solid #29292f}
-      .rich-activity-copy{min-width:0}
-      .rich-activity-name{display:block;color:#bbb;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      .rich-activity-details,.rich-activity-state{display:block;color:#666;font-size:7px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      .rich-activity-time{display:block;color:#555;font-size:7px;margin-top:3px}
-      .rich-activity-link{display:inline-block;margin-top:3px;color:#777;font-size:7px}
-      .rich-activity-link:hover{color:#ddd}
+      .rich-presence-status{display:flex;align-items:center;gap:7px;margin-top:3px;font-size:8px;color:#666}
+      .rich-presence-devices{display:flex;align-items:center;gap:5px;margin-left:1px}
+      .rich-presence-device{display:grid;place-items:center;color:#777;width:14px;height:14px}
+      .rich-presence-device svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+      .rich-presence-activities{display:flex;align-items:center;gap:7px;margin-top:7px;min-width:0;overflow:hidden;white-space:nowrap}
+      .rich-activity{display:inline-flex;align-items:center;gap:4px;min-width:0;color:#777;font-size:7px;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}
+      .rich-activity+.rich-activity:before{content:"·";color:#3f3f46;margin-right:2px}
+      .rich-activity-name{display:block;color:#777;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+      .rich-activity-time{display:inline;color:#555;font-size:7px;flex:0 0 auto}
       .rich-presence-empty{margin-top:6px;color:#555;font-size:8px}
       .rich-presence-card .avatar-wrap{flex:0 0 auto}
-      @media(max-width:620px){.rich-presence-card{align-items:flex-start}.rich-presence-card .small-action{display:none}.rich-activity{grid-template-columns:30px minmax(0,1fr)}.rich-activity-art{width:30px;height:30px}}
+      @media(max-width:620px){.rich-presence-card .small-action{display:none}.rich-activity-name{max-width:180px}}
     `;
     document.head.appendChild(style);
   };
 
   const escapeHtml = (value) => String(value ?? "").replace(/[&<>\"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
-
-  const imageUrl = (activity, key) => {
-    const asset = activity?.assets?.[key];
-    if (!asset) return null;
-    if (asset.startsWith("mp:") && activity.application_id) {
-      return `https://cdn.discordapp.com/app-assets/${activity.application_id}/${asset.slice(3)}.png?size=128`;
-    }
-    if (/^https?:\/\//i.test(asset)) return asset;
-    return `https://cdn.discordapp.com/app-assets/${activity.application_id || ""}/${asset}.png?size=128`;
-  };
 
   const formatElapsed = (start) => {
     if (!start) return "";
@@ -61,12 +48,18 @@
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    return h ? `ends in ${h}h ${String(m).padStart(2,"0")}m` : `ends in ${m}m ${String(s).padStart(2,"0")}s`;
+    return h ? `ends ${h}h ${String(m).padStart(2,"0")}m` : `ends ${m}m ${String(s).padStart(2,"0")}s`;
   };
 
   const activityType = (activity) => {
     const types = ["Playing","Streaming","Listening to","Watching","Custom Status","Competing in"];
     return types[activity?.type] || "Activity";
+  };
+
+  const deviceIcon = (device) => {
+    if (device === "desktop") return `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 20h8M12 17v3"/></svg>`;
+    if (device === "mobile") return `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10 5h4M11 18.5h2"/></svg>`;
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>`;
   };
 
   const render = (card, data) => {
@@ -81,29 +74,19 @@
       : "";
     const status = data.discord_status || "offline";
     const devices = [];
-    if (data.active_on_discord_desktop) devices.push("DESKTOP");
-    if (data.active_on_discord_mobile) devices.push("MOBILE");
-    if (data.active_on_discord_web) devices.push("WEB");
+    if (data.active_on_discord_desktop) devices.push("desktop");
+    if (data.active_on_discord_mobile) devices.push("mobile");
+    if (data.active_on_discord_web) devices.push("web");
 
-    const activities = (data.activities || []).filter(Boolean);
-    const nonSpotify = activities.filter((a) => a.name !== "Spotify");
-    const activityCards = nonSpotify.map((activity) => {
-      const large = imageUrl(activity, "large_image") || imageUrl(activity, "small_image");
+    // Exclude Spotify (handled by Last.fm) and Discord Custom Status (type 4).
+    const activities = (data.activities || []).filter((a) => a && a.name !== "Spotify" && a.type !== 4);
+    const activityCards = activities.map((activity) => {
       const start = activity.timestamps?.start;
       const end = activity.timestamps?.end;
       const time = start ? formatElapsed(start) : formatRemaining(end);
-      const href = activity.url || (activity.buttons?.[0]?.url || "");
       const label = activityType(activity);
-      return `<div class="rich-activity">
-        ${large ? `<img class="rich-activity-art" src="${escapeHtml(large)}" alt="" loading="lazy"/>` : `<div class="rich-activity-art"></div>`}
-        <div class="rich-activity-copy">
-          <span class="rich-activity-name">${escapeHtml(label)} · ${escapeHtml(activity.name || "Unknown activity")}</span>
-          ${activity.details ? `<span class="rich-activity-details">${escapeHtml(activity.details)}</span>` : ""}
-          ${activity.state ? `<span class="rich-activity-state">${escapeHtml(activity.state)}</span>` : ""}
-          ${time ? `<span class="rich-activity-time">${escapeHtml(time)}</span>` : ""}
-          ${href ? `<a class="rich-activity-link" href="${escapeHtml(href)}" target="_blank" rel="noreferrer">open activity ↗</a>` : ""}
-        </div>
-      </div>`;
+      const description = [label, activity.name || "Unknown activity", activity.details, activity.state].filter(Boolean).join(" · ");
+      return `<div class="rich-activity" data-start="${escapeHtml(start || "")}" data-end="${escapeHtml(end || "")}"><span class="rich-activity-name">${escapeHtml(description)}</span>${time ? `<span class="rich-activity-time">${escapeHtml(time)}</span>` : ""}</div>`;
     }).join("");
 
     card.classList.add("rich-presence-card");
@@ -120,11 +103,9 @@
         </div>
         <div class="rich-presence-status">
           <span>${escapeHtml(status)}</span>
-          ${devices.length ? `<span class="rich-presence-devices">${devices.map((d) => `<span class="rich-presence-device">${d}</span>`).join("")}</span>` : ""}
+          ${devices.length ? `<span class="rich-presence-devices" aria-label="Active Discord devices">${devices.map((d) => `<span class="rich-presence-device" title="${d}">${deviceIcon(d)}</span>`).join("")}</span>` : ""}
         </div>
-        <div class="rich-presence-activities">
-          ${activityCards || `<div class="rich-presence-empty">no active rich presence</div>`}
-        </div>
+        <div class="rich-presence-activities">${activityCards || `<div class="rich-presence-empty">no active rich presence</div>`}</div>
       </div>
       <a class="small-action" href="https://discord.com/users/${DISCORD_ID}" target="_blank" rel="noreferrer">discord ↗</a>
     `;
@@ -134,10 +115,10 @@
     document.querySelectorAll(".rich-activity").forEach((el) => {
       const time = el.querySelector(".rich-activity-time");
       if (!time) return;
-      const marker = el.dataset.start;
-      const endMarker = el.dataset.end;
-      if (marker) time.textContent = formatElapsed(Number(marker));
-      else if (endMarker) time.textContent = formatRemaining(Number(endMarker));
+      const start = el.dataset.start;
+      const end = el.dataset.end;
+      if (start) time.textContent = formatElapsed(Number(start));
+      else if (end) time.textContent = formatRemaining(Number(end));
     });
   };
 
@@ -150,11 +131,6 @@
       if (!response.ok) throw new Error("Lanyard request failed");
       const json = await response.json();
       render(card, json.data);
-      document.querySelectorAll(".rich-activity").forEach((el, index) => {
-        const activity = (json.data?.activities || []).filter((a) => a.name !== "Spotify")[index];
-        if (activity?.timestamps?.start) el.dataset.start = activity.timestamps.start;
-        if (activity?.timestamps?.end) el.dataset.end = activity.timestamps.end;
-      });
     } catch (error) {
       if (lastCard && !lastCard.classList.contains("rich-presence-card")) return;
     }
