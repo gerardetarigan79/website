@@ -33,13 +33,13 @@ body:after{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:-1;b
 @keyframes pulse{50%{transform:scale(1.15);opacity:.7}}@keyframes float{50%{transform:translateY(-5px)}}@keyframes flipIn{from{transform:rotateX(-60deg);opacity:.3}to{transform:none;opacity:1}}@keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:850px){.site{zoom:1}.page-inner{width:calc(100vw - 95px)}.music-layout{grid-template-columns:1fr}.music-list{display:none}.now-playing{max-width:480px;margin:auto;width:100%}.record-stage{height:300px}.home-widgets{grid-template-columns:1fr}.weather-widget{grid-column:auto}.game-grid,.f1-interest-grid{grid-template-columns:1fr}.setup-grid{grid-template-columns:1fr}.steam-stats{grid-template-columns:repeat(2,1fr)}.page{padding-top:55px}.f1-logo{right:15px;font-size:60px}}
 @media(max-width:500px){.sidebar{width:48px}.side-logo{height:54px}.side-item{width:32px;height:32px}.site{margin-left:48px}.page-inner{width:calc(100vw - 68px)}.discord-card{align-items:flex-start}.small-action{display:none}.flip-widget{overflow:hidden}.flip{width:19px;height:28px;font-size:13px}.clock-meta{display:none}.project-card{width:100%}.game-visual{height:210px}.game-visual .roblox{width:190px;height:190px}.game-visual .minecraft{height:190px}.contact-card{flex-direction:column;align-items:flex-start;gap:12px}.contact-buttons{width:100%}.contact-buttons>*{flex:1;justify-content:center}.page h1{font-size:27px}}
-/* v3 interaction/data fixes */
+
 .badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.badges span{display:inline-flex;align-items:center;justify-content:center;min-height:15px;padding:2px 5px;border:1px solid #34313b;border-radius:3px;background:linear-gradient(135deg,#18151e,#101015);color:#9d9aa8;font-size:6px;letter-spacing:.04em;box-shadow:0 0 10px #6a029710;transition:transform .18s,border-color .18s,color .18s}.badges span:hover{transform:translateY(-1px);border-color:#5b426d;color:#eee}
 .recent-section{margin-top:24px}.recent-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.recent-head h3{font-size:8px;color:#666;font-weight:400;margin:0;letter-spacing:.08em}.recent-head span{font-size:7px;color:#444}.recent-scroller{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:2px 2px 10px 0;scrollbar-width:thin;scrollbar-color:#2b2932 transparent}.recent-scroller::-webkit-scrollbar{height:4px}.recent-scroller::-webkit-scrollbar-track{background:transparent}.recent-scroller::-webkit-scrollbar-thumb{background:#292730;border-radius:9px}.recent-card{flex:0 0 180px;min-height:58px;display:flex;align-items:center;gap:9px;padding:8px;border:1px solid #25252c;border-radius:6px;background:#101014;position:relative;scroll-snap-align:start;transition:transform .2s,border-color .2s,background .2s}.recent-card:hover{transform:translateY(-2px);border-color:#443653;background:#141319}.recent-card img{width:42px;height:42px;border-radius:4px;object-fit:cover;background:#1a1a20;flex:none}.recent-card strong{display:block;color:#c6c6cd;font-size:8px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px}.recent-card small{display:block;color:#555;font-size:7px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px}.now-dot{position:absolute;right:7px;top:7px;width:5px;height:5px;border-radius:50%;background:#6fd8ad;box-shadow:0 0 8px #6fd8ad}.skeleton-recent{background:linear-gradient(90deg,#101014 20%,#1b1b21 45%,#101014 70%);background-size:200% 100%;animation:shimmer 1.2s infinite}.game-loader{width:54px;height:54px;border:1px solid #2b2832;border-top-color:#8c49b2;border-radius:50%;animation:spin .9s linear infinite}.steam-unavailable{min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}.steam-unavailable small{font-size:7px;color:#4e4e54}.game-card img{opacity:0;animation:mediaIn .5s .1s ease forwards}.game-card .game-loader{animation:spin .9s linear infinite}@keyframes mediaIn{to{opacity:1}}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @media(max-width:850px){.music-layout{grid-template-columns:1fr}.music-list{display:block}.now-playing{max-width:520px;margin:auto;width:100%}.recent-card{flex-basis:175px}}
 
-/* Revision: interactive music cards and clean CD player */
+
 .music-item{transition:transform .24s cubic-bezier(.2,.8,.2,1),background .24s,box-shadow .24s}
 .music-item:hover{transform:translateY(-6px);background:rgba(255,255,255,.025);box-shadow:0 12px 30px rgba(0,0,0,.28)}
 .music-list,.now-playing{transition:transform .24s ease}
@@ -60,17 +60,17 @@ body:after{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:-1;b
 @media (hover:hover){.music-item:hover img,.music-item:hover .mini-art{transform:scale(1.06)}.music-item img,.mini-art,.recent-card{transition:transform .24s cubic-bezier(.2,.8,.2,1)}}
 @media (max-width:700px){body{cursor:auto}.cursor-dot,.star-trail{display:none}.f1-logo{right:18px;width:90px}.record-disc{width:210px;height:210px}}
 
-/* Fix: center the entire Recent Plays block on the music section's true center axis */
+
 .music-layout{position:relative;grid-template-columns:190px minmax(0,1fr) 190px;align-items:stretch}
 .music-layout>.now-playing{grid-column:2;justify-self:center;width:min(100%,520px);display:flex;flex-direction:column;align-items:stretch}
 .music-layout>.music-list:first-child{grid-column:1}
 .music-layout>.music-list:last-child{grid-column:3}
 @media(max-width:850px){.music-layout>.now-playing{grid-column:1;width:100%;max-width:520px;margin-inline:auto}.music-layout>.music-list:first-child,.music-layout>.music-list:last-child{grid-column:1}}
 
-/* Fix: keep non-clickable bio highlights white */
+
 .lead .bio-highlight{color:#fff}
 
-/* Contact page: Discord + email cards */
+
 .contact-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:24px;max-width:650px}
 .contact-grid .contact-card{margin-top:0;min-height:76px}
 .contact-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#342044,#101019);border:1px solid #4a3b55;color:#bcb6c5;flex:0 0 auto}
