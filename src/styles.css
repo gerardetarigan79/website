@@ -69,3 +69,13 @@ body:after{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:-1;b
 
 /* Fix: keep non-clickable bio highlights white */
 .lead .bio-highlight{color:#fff}
+
+/* Contact page: Discord + email cards */
+.contact-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:24px;max-width:650px}
+.contact-grid .contact-card{margin-top:0;min-height:76px}
+.contact-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#342044,#101019);border:1px solid #4a3b55;color:#bcb6c5;flex:0 0 auto}
+.contact-icon img{width:21px;height:21px;display:block}
+.contact-icon.discord-icon{background:linear-gradient(135deg,#5865f2,#302c61);border-color:#6975f4}
+.contact-icon.discord-icon img{filter:none}
+.contact-buttons a{white-space:nowrap}
+@media(max-width:500px){.contact-grid{width:100%}.contact-grid .contact-card{width:100%}}
