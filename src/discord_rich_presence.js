@@ -18,14 +18,13 @@
       .rich-presence-devices{display:flex;align-items:center;gap:5px;margin-left:1px}
       .rich-presence-device{display:grid;place-items:center;color:#777;width:14px;height:14px}
       .rich-presence-device svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-      .rich-presence-activities{display:flex;align-items:center;gap:7px;margin-top:7px;min-width:0;overflow:hidden;white-space:nowrap}
-      .rich-activity{display:inline-flex;align-items:center;gap:4px;min-width:0;color:#777;font-size:7px;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}
-      .rich-activity+.rich-activity:before{content:"·";color:#3f3f46;margin-right:2px}
-      .rich-activity-name{display:block;color:#777;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
-      .rich-activity-time{display:inline;color:#555;font-size:7px;flex:0 0 auto}
+      .rich-presence-activities{display:flex;flex-direction:column;gap:4px;margin-top:7px;min-width:0}
+      .rich-activity{display:flex;align-items:baseline;gap:5px;min-width:0;color:#777;font-size:7px;line-height:1.35}
+      .rich-activity-name{display:block;color:#777;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+      .rich-activity-time{display:inline;color:#555;font-size:7px;flex:0 0 auto;white-space:nowrap}
       .rich-presence-empty{margin-top:6px;color:#555;font-size:8px}
       .rich-presence-card .avatar-wrap{flex:0 0 auto}
-      @media(max-width:620px){.rich-presence-card .small-action{display:none}.rich-activity-name{max-width:180px}}
+      @media(max-width:620px){.rich-presence-card .small-action{display:none}.rich-activity-name{max-width:100%}}
     `;
     document.head.appendChild(style);
   };
