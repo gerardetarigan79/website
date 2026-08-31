@@ -66,3 +66,6 @@ body:after{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:-1;b
 .music-layout>.music-list:first-child{grid-column:1}
 .music-layout>.music-list:last-child{grid-column:3}
 @media(max-width:850px){.music-layout>.now-playing{grid-column:1;width:100%;max-width:520px;margin-inline:auto}.music-layout>.music-list:first-child,.music-layout>.music-list:last-child{grid-column:1}}
+
+/* Fix: keep non-clickable bio highlights white */
+.lead .bio-highlight{color:#fff}
