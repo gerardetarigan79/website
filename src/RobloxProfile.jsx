@@ -39,7 +39,7 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
     let disposed = false; let frame; let avatar;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(25, 1, 0.01, 1000);
-    camera.position.set(0, 1.72, 7.5); camera.lookAt(0, 1.72, 0);
+    camera.position.set(0, 1.72, 8.75); camera.lookAt(0, 1.72, 0);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.setClearColor(0x000000, 0); mount.appendChild(renderer.domElement);
     scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 1.9));
