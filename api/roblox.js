@@ -47,12 +47,17 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.ROBLOX_API_KEY || "";
 
-  const [userR, friendsR, followersR, badgesR, presenceR, avatarR] = await Promise.all([
+  const [userR, friendsR, followersR, badgesR, presenceR, lastOnlineR, avatarR] = await Promise.all([
     safe("profile", () => getJson(`https://users.roblox.com/v1/users/${USER_ID}`)),
     safe("friends", () => getJson(`https://friends.roblox.com/v1/users/${USER_ID}/friends/count`)),
     safe("followers", () => getJson(`https://friends.roblox.com/v1/users/${USER_ID}/followers/count`)),
     safe("badges", () => countBadges()),
     safe("presence", () => getJson("https://presence.roblox.com/v1/presence/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userIds: [Number(USER_ID)] }),
+    })),
+    safe("last online", () => getJson(`https://presence.roblox.com/v1/presence/last-online`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userIds: [Number(USER_ID)] }),
@@ -68,6 +73,7 @@ export default async function handler(req, res) {
     followers: followersR.ok ? "ok" : followersR.error,
     badges: badgesR.ok ? "ok" : badgesR.error,
     presence: presenceR.ok ? "ok" : presenceR.error,
+    lastOnline: lastOnlineR.ok ? "ok" : lastOnlineR.error,
     avatar: avatarR.ok ? "ok" : avatarR.error,
     threeD: apiKey ? "checking" : "missing ROBLOX_API_KEY",
   };
@@ -90,22 +96,40 @@ export default async function handler(req, res) {
 
   const user = userR.ok ? userR.value : null;
   const p = presenceR.ok ? presenceR.value?.userPresences?.[0] || {} : {};
+  const lastOnline = lastOnlineR.ok
+    ? lastOnlineR.value?.lastOnlineTimestamps?.[0]?.lastOnline || lastOnlineR.value?.lastOnline || null
+    : null;
   const avatarUrl = avatarR.ok ? avatarR.value?.data?.[0]?.imageUrl || "" : "";
+
+  let game = null;
+  if (p.universeId) {
+    const gameR = await safe("game", () => getJson(`https://games.roblox.com/v1/games?universeIds=${p.universeId}`));
+    if (gameR.ok) {
+      const g = gameR.value?.data?.[0];
+      if (g) game = { name: g.name || "Roblox", rootPlaceId: g.rootPlaceId || p.placeId || null, universeId: p.universeId };
+    }
+    diagnostics.game = game ? "ok" : "game info unavailable";
+  }
+
+  const badgeCount = badgesR.ok && badgesR.value > 0 ? badgesR.value : null;
+  const badgeStatus = badgesR.ok && badgesR.value === 0 ? "unavailable" : badgesR.ok ? "ok" : "unavailable";
 
   return res.status(200).json({
     user: user ? { id: user.id, username: user.name, displayName: user.displayName, created: user.created } : null,
     avatarUrl,
     modelUrl,
     modelState,
-    friends: friendsR.ok ? friendsR.value?.count || 0 : null,
-    followers: followersR.ok ? followersR.value?.count || 0 : null,
-    badges: badgesR.ok ? badgesR.value : null,
+    friends: friendsR.ok ? friendsR.value?.count ?? null : null,
+    followers: followersR.ok ? followersR.value?.count ?? null : null,
+    badges: badgeCount,
+    badgeStatus,
     presence: {
       type: p.userPresenceType ?? 0,
       lastLocation: p.lastLocation || "",
-      lastOnline: p.lastOnline || null,
+      lastOnline,
       placeId: p.placeId || null,
       universeId: p.universeId || null,
+      game,
     },
     diagnostics,
     fetchedAt: new Date().toISOString(),
