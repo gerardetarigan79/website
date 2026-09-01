@@ -13,7 +13,7 @@ if (legacyRegex.test(source)) source = source.replace(legacyRegex, newCard);
 else if (generatedRegex.test(source)) source = source.replace(generatedRegex, newCard);
 else throw new Error("minecraft-card-patch: could not locate Minecraft card in src/main.jsx");
 
-const marker = "/* Minecraft Roblox-style profile layout v9 */";
+const marker = "/* Minecraft Roblox-style profile layout v10 */";
 const css = `
 
 ${marker}
@@ -24,12 +24,12 @@ ${marker}
 .minecraft-header .kicker{display:block;color:#666;font-size:7px;letter-spacing:.04em;margin-bottom:3px}
 .minecraft-header strong{display:block;color:#ddd;font-size:15px;font-weight:400;line-height:1.05}
 .minecraft-header>a{color:#666;text-decoration:none;font-size:13px;line-height:1}
-.minecraft-body{flex:1;min-height:0;display:grid;grid-template-columns:44% 56%}
-.minecraft-visual{height:100%;min-height:0;position:relative;display:flex;overflow:hidden;background:transparent;padding:0 10px}
-.minecraft-avatar-wrap{flex:1;min-height:0;display:grid;place-items:end center;position:relative;background:transparent}
-.minecraft-visual .minecraft{width:auto;height:calc(100% - 4px);max-height:220px;max-width:100%;object-fit:contain;background:transparent;filter:drop-shadow(0 18px 24px #000);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.minecraft-body{flex:1;min-height:0;display:grid;grid-template-columns:44% 56%;background:transparent!important}
+.minecraft-visual{height:100%;min-height:0;position:relative;display:flex;overflow:hidden;background:transparent!important;padding:0 10px}
+.minecraft-avatar-wrap{flex:1;min-height:0;display:grid;place-items:end center;position:relative;background:transparent!important}
+.minecraft-visual .minecraft{width:auto;height:calc(100% - 4px);max-height:220px;max-width:100%;object-fit:contain;background:transparent!important;filter:drop-shadow(0 18px 24px #000);mix-blend-mode:normal;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .minecraft-card:hover .minecraft-visual .minecraft{transform:translateY(-2px) scale(1.015)}
-.minecraft-info{padding:12px 13px;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.minecraft-info{padding:12px 13px;min-width:0;display:flex;flex-direction:column;justify-content:center;background:transparent}
 .minecraft-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .minecraft-stats>div{min-width:0;border:1px solid #25252b;background:#0e0e12;border-radius:5px;padding:9px 7px}
 .minecraft-stats b{display:block;color:#c7c7ce;font-size:12px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
@@ -51,4 +51,4 @@ if (!styles.includes(marker)) styles += css;
 
 fs.writeFileSync(mainPath, source);
 fs.writeFileSync(stylesPath, styles);
-console.log("minecraft-card-patch: v9 - use uploaded transparent Minecraft render at /minecraft/idraven.png");
+console.log("minecraft-card-patch: v10 - force transparent avatar container/background while using uploaded render");
