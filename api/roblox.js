@@ -6,6 +6,19 @@ async function getJson(url, options = {}) {
   return response.json();
 }
 
+async function countBadges() {
+  let cursor = "";
+  let total = 0;
+  do {
+    const query = new URLSearchParams({ limit: "100", sortOrder: "Desc" });
+    if (cursor) query.set("cursor", cursor);
+    const page = await getJson(`https://badges.roblox.com/v1/users/${USER_ID}/badges?${query}`);
+    total += page?.data?.length || 0;
+    cursor = page?.nextPageCursor || "";
+  } while (cursor);
+  return total;
+}
+
 export default async function handler(req, res) {
   try {
     const apiKey = process.env.ROBLOX_API_KEY || "";
@@ -15,7 +28,7 @@ export default async function handler(req, res) {
       getJson(`https://friends.roblox.com/v1/users/${USER_ID}/friends/count`),
       getJson(`https://friends.roblox.com/v1/users/${USER_ID}/followers/count`),
       getJson(`https://friends.roblox.com/v1/users/${USER_ID}/followings/count`),
-      getJson(`https://badges.roblox.com/v1/users/${USER_ID}/badges?limit=10&sortOrder=Desc`),
+      countBadges(),
       getJson("https://presence.roblox.com/v1/presence/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,7 +65,7 @@ export default async function handler(req, res) {
       friends: friends.count || 0,
       followers: followers.count || 0,
       following: following.count || 0,
-      badges: badges.total || badges.data?.length || 0,
+      badges,
       presence: {
         type: p.userPresenceType ?? 0,
         lastLocation: p.lastLocation || "",
