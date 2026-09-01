@@ -29,15 +29,13 @@ function cdnUrl(hash) {
 }
 
 async function getAvatar3D(apiKey) {
-  const thumbnail = await getJson(
-    `https://thumbnails.roblox.com/v1/users/avatar-3d?userId=${USER_ID}`,
-    { headers: { "x-api-key": apiKey } },
-  );
+  const thumbnail = await getJson(`https://thumbnails.roblox.com/v1/users/avatar-3d?userId=${USER_ID}`, {
+    headers: { "x-api-key": apiKey },
+  });
   const item = thumbnail?.data?.[0] || thumbnail;
   if (!item?.imageUrl || item?.state !== "Completed") {
     throw new Error(`avatar thumbnail state: ${item?.state || "unavailable"}`);
   }
-
   const descriptor = await getJson(item.imageUrl);
   return {
     descriptorUrl: item.imageUrl,
@@ -53,15 +51,11 @@ async function countInventoryBadges(apiKey) {
   let pageToken = "";
   let total = 0;
   for (let pageNumber = 0; pageNumber < 100; pageNumber += 1) {
-    const params = new URLSearchParams({
-      maxPageSize: "100",
-      "filter": "badges=true",
-    });
+    const params = new URLSearchParams({ maxPageSize: "100", filter: "badges=true" });
     if (pageToken) params.set("pageToken", pageToken);
-    const page = await getJson(
-      `https://apis.roblox.com/cloud/v2/users/${USER_ID}/inventory-items?${params.toString()}`,
-      { headers: { "x-api-key": apiKey } },
-    );
+    const page = await getJson(`https://apis.roblox.com/cloud/v2/users/${USER_ID}/inventory-items?${params.toString()}`, {
+      headers: { "x-api-key": apiKey },
+    });
     total += Array.isArray(page?.inventoryItems) ? page.inventoryItems.length : 0;
     pageToken = page?.nextPageToken || "";
     if (!pageToken || !page?.inventoryItems?.length) return total;
@@ -70,16 +64,13 @@ async function countInventoryBadges(apiKey) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=60");
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
   res.setHeader("Access-Control-Allow-Origin", "*");
-
-  if (req.method && req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method && req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   const apiKey = process.env.ROBLOX_API_KEY || "";
 
-  const [userR, friendsR, followersR, presenceR, lastOnlineR, avatarR] = await Promise.all([
+  const [userR, friendsR, followersR, presenceR, avatarR] = await Promise.all([
     safe("profile", () => getJson(`https://users.roblox.com/v1/users/${USER_ID}`)),
     safe("friends", () => getJson(`https://friends.roblox.com/v1/users/${USER_ID}/friends/count`)),
     safe("followers", () => getJson(`https://friends.roblox.com/v1/users/${USER_ID}/followers/count`)),
@@ -88,22 +79,28 @@ export default async function handler(req, res) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userIds: [Number(USER_ID)] }),
     })),
-    safe("last online", () => getJson("https://presence.roblox.com/v1/presence/last-online", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userIds: [Number(USER_ID)] }),
-    })),
-    safe("avatar", () => getJson(
-      `https://thumbnails.roblox.com/v1/users/avatar?userIds=${USER_ID}&size=420x420&format=Png&isCircular=false`,
-    )),
+    safe("avatar", () => getJson(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${USER_ID}&size=420x420&format=Png&isCircular=false`)),
   ]);
+
+  const p = presenceR.ok ? presenceR.value?.userPresences?.[0] || {} : {};
+  const isOffline = (p.userPresenceType ?? 0) === 0;
+
+  // Roblox explicitly provides /last-online as the accurate source for this field.
+  // Only call it while offline to avoid unnecessary rate-limit pressure while the live presence endpoint is enough.
+  const lastOnlineR = isOffline
+    ? await safe("last online", () => getJson("https://presence.roblox.com/v1/presence/last-online", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userIds: [Number(USER_ID)] }),
+      }))
+    : { ok: true, value: null };
 
   const diagnostics = {
     profile: userR.ok ? "ok" : userR.error,
     friends: friendsR.ok ? "ok" : friendsR.error,
     followers: followersR.ok ? "ok" : followersR.error,
     presence: presenceR.ok ? "ok" : presenceR.error,
-    lastOnline: lastOnlineR.ok ? "ok" : lastOnlineR.error,
+    lastOnline: !isOffline ? "not needed while online" : lastOnlineR.ok ? "ok" : lastOnlineR.error,
     avatar: avatarR.ok ? "ok" : avatarR.error,
     threeD: apiKey ? "checking" : "missing ROBLOX_API_KEY",
     badges: apiKey ? "checking" : "missing ROBLOX_API_KEY",
@@ -115,9 +112,7 @@ export default async function handler(req, res) {
     if (modelR.ok) {
       model = modelR.value;
       diagnostics.threeD = "ok";
-    } else {
-      diagnostics.threeD = modelR.error;
-    }
+    } else diagnostics.threeD = modelR.error;
   }
 
   let badges = null;
@@ -126,16 +121,11 @@ export default async function handler(req, res) {
     if (badgeR.ok) {
       badges = badgeR.value;
       diagnostics.badges = "ok";
-    } else {
-      diagnostics.badges = badgeR.error;
-    }
+    } else diagnostics.badges = badgeR.error;
   }
 
   const user = userR.ok ? userR.value : null;
-  const p = presenceR.ok ? presenceR.value?.userPresences?.[0] || {} : {};
-  const lastOnline = lastOnlineR.ok
-    ? lastOnlineR.value?.lastOnlineTimestamps?.[0]?.lastOnline || lastOnlineR.value?.lastOnline || null
-    : null;
+  const lastOnline = lastOnlineR.ok ? lastOnlineR.value?.lastOnlineTimestamps?.[0]?.lastOnline || null : null;
   const avatarUrl = avatarR.ok ? avatarR.value?.data?.[0]?.imageUrl || "" : "";
 
   let game = null;
