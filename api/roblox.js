@@ -33,9 +33,7 @@ async function getAvatar3D(apiKey) {
     headers: { "x-api-key": apiKey },
   });
   const item = thumbnail?.data?.[0] || thumbnail;
-  if (!item?.imageUrl || item?.state !== "Completed") {
-    throw new Error(`avatar thumbnail state: ${item?.state || "unavailable"}`);
-  }
+  if (!item?.imageUrl || item?.state !== "Completed") throw new Error(`avatar thumbnail state: ${item?.state || "unavailable"}`);
   const descriptor = await getJson(item.imageUrl);
   return {
     descriptorUrl: item.imageUrl,
@@ -53,9 +51,7 @@ async function countInventoryBadges(apiKey) {
   for (let pageNumber = 0; pageNumber < 100; pageNumber += 1) {
     const params = new URLSearchParams({ maxPageSize: "100", filter: "badges=true" });
     if (pageToken) params.set("pageToken", pageToken);
-    const page = await getJson(`https://apis.roblox.com/cloud/v2/users/${USER_ID}/inventory-items?${params.toString()}`, {
-      headers: { "x-api-key": apiKey },
-    });
+    const page = await getJson(`https://apis.roblox.com/cloud/v2/users/${USER_ID}/inventory-items?${params.toString()}`, { headers: { "x-api-key": apiKey } });
     total += Array.isArray(page?.inventoryItems) ? page.inventoryItems.length : 0;
     pageToken = page?.nextPageToken || "";
     if (!pageToken || !page?.inventoryItems?.length) return total;
@@ -85,22 +81,24 @@ export default async function handler(req, res) {
   const p = presenceR.ok ? presenceR.value?.userPresences?.[0] || {} : {};
   const isOffline = (p.userPresenceType ?? 0) === 0;
 
-  // Roblox explicitly provides /last-online as the accurate source for this field.
-  // Only call it while offline to avoid unnecessary rate-limit pressure while the live presence endpoint is enough.
-  const lastOnlineR = isOffline
-    ? await safe("last online", () => getJson("https://presence.roblox.com/v1/presence/last-online", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userIds: [Number(USER_ID)] }),
-      }))
-    : { ok: true, value: null };
+  // Roblox documents this endpoint as the accurate source for last-online timestamps.
+  // Include the Open Cloud key when available; this also makes the request work in
+  // environments where Roblox requires authenticated presence access.
+  const lastOnlineR = await safe("last online", () => getJson("https://presence.roblox.com/v1/presence/last-online", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(apiKey ? { "x-api-key": apiKey } : {}),
+    },
+    body: JSON.stringify({ userIds: [Number(USER_ID)] }),
+  }));
 
   const diagnostics = {
     profile: userR.ok ? "ok" : userR.error,
     friends: friendsR.ok ? "ok" : friendsR.error,
     followers: followersR.ok ? "ok" : followersR.error,
     presence: presenceR.ok ? "ok" : presenceR.error,
-    lastOnline: !isOffline ? "not needed while online" : lastOnlineR.ok ? "ok" : lastOnlineR.error,
+    lastOnline: lastOnlineR.ok ? "ok" : lastOnlineR.error,
     avatar: avatarR.ok ? "ok" : avatarR.error,
     threeD: apiKey ? "checking" : "missing ROBLOX_API_KEY",
     badges: apiKey ? "checking" : "missing ROBLOX_API_KEY",
@@ -125,7 +123,8 @@ export default async function handler(req, res) {
   }
 
   const user = userR.ok ? userR.value : null;
-  const lastOnline = lastOnlineR.ok ? lastOnlineR.value?.lastOnlineTimestamps?.[0]?.lastOnline || null : null;
+  const timestamps = lastOnlineR.ok ? lastOnlineR.value?.lastOnlineTimestamps : null;
+  const lastOnline = Array.isArray(timestamps) ? (timestamps.find((item) => Number(item?.userId) === Number(USER_ID))?.lastOnline || timestamps[0]?.lastOnline || null) : null;
   const avatarUrl = avatarR.ok ? avatarR.value?.data?.[0]?.imageUrl || "" : "";
 
   let game = null;
