@@ -5,7 +5,7 @@ const stylesPath = "src/styles.css";
 let source = fs.readFileSync(mainPath, "utf8");
 let styles = fs.readFileSync(stylesPath, "utf8");
 
-const newCard = '<div className="game-card minecraft-card cursor-target"><div className="minecraft-header"><div><span className="kicker">MINECRAFT PROFILE</span><strong>iDraven</strong></div><a href="https://namemc.com/profile/iDraven.6" target="_blank" rel="noreferrer" aria-label="Open Minecraft profile">↗</a></div><div className="minecraft-body"><div className="minecraft-visual"><div className="minecraft-avatar-wrap"><img className="minecraft" src="https://mc-api.bisai.dev/v1/render/3d/fullbody/iDraven" alt="iDraven Minecraft character"/><div className="minecraft-scan"/></div></div><div className="minecraft-info"><div className="minecraft-stats"><div><b>3</b><span>Capes</span></div><div><b>Dec 19, 2021</b><span>Joined</span></div><div><b>Java</b><span>Edition</span></div></div><div className="minecraft-hypixel"><span>HYPIXEL RANK</span><b>MVP+</b></div><div className="minecraft-client"><img src="https://brand.lunarclient.com/_next/static/media/logo.87bbfcf3.svg" alt="Lunar Client"/><span>Client: <b>Lunar Client</b></span></div><div className="minecraft-bedwars"><div className="minecraft-bedwars-head"><span>BEDWARS</span></div><div className="minecraft-bedwars-grid"><span><b>6.396</b>FKDR</span><span><b>2.133</b>WLR</span><span><b>13</b>LUNAR COSMETICS</span></div></div></div></div></div>';
+const newCard = '<div className="game-card minecraft-card cursor-target"><div className="minecraft-header"><div><span className="kicker">MINECRAFT PROFILE</span><strong>iDraven</strong></div><a href="https://namemc.com/profile/iDraven.6" target="_blank" rel="noreferrer" aria-label="Open Minecraft profile">↗</a></div><div className="minecraft-body"><div className="minecraft-visual"><div className="minecraft-avatar-wrap"><img className="minecraft" src="/minecraft/idraven.png" alt="iDraven Minecraft character"/><div className="minecraft-scan"/></div></div><div className="minecraft-info"><div className="minecraft-stats"><div><b>3</b><span>Capes</span></div><div><b>Dec 19, 2021</b><span>Joined</span></div><div><b>Java</b><span>Edition</span></div></div><div className="minecraft-hypixel"><span>HYPIXEL RANK</span><b>MVP+</b></div><div className="minecraft-client"><img src="https://brand.lunarclient.com/_next/static/media/logo.87bbfcf3.svg" alt="Lunar Client"/><span>Client: <b>Lunar Client</b></span></div><div className="minecraft-bedwars"><div className="minecraft-bedwars-head"><span>BEDWARS</span></div><div className="minecraft-bedwars-grid"><span><b>6.396</b>FKDR</span><span><b>2.133</b>WLR</span><span><b>13</b>LUNAR COSMETICS</span></div></div></div></div></div>';
 
 const legacyRegex = /<GameCard\s+title=["']Minecraft["'][\s\S]*?<\/GameCard>/;
 const generatedRegex = /<div\s+className=["']game-card minecraft-card cursor-target["'][\s\S]*?<\/div><\/div><\/div>/;
@@ -13,7 +13,7 @@ if (legacyRegex.test(source)) source = source.replace(legacyRegex, newCard);
 else if (generatedRegex.test(source)) source = source.replace(generatedRegex, newCard);
 else throw new Error("minecraft-card-patch: could not locate Minecraft card in src/main.jsx");
 
-const marker = "/* Minecraft Roblox-style profile layout v8 */";
+const marker = "/* Minecraft Roblox-style profile layout v9 */";
 const css = `
 
 ${marker}
@@ -51,4 +51,4 @@ if (!styles.includes(marker)) styles += css;
 
 fs.writeFileSync(mainPath, source);
 fs.writeFileSync(stylesPath, styles);
-console.log("minecraft-card-patch: v8 - full-width Minecraft Profile header, iDraven below title, transparent avatar area, enlarged stats");
+console.log("minecraft-card-patch: v9 - use uploaded transparent Minecraft render at /minecraft/idraven.png");
