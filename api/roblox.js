@@ -22,8 +22,6 @@ async function safe(label, task) {
 }
 
 async function countBadges() {
-  // Badge counts are the slowest profile request. Keep it bounded so one
-  // Roblox pagination issue can never make the entire profile unavailable.
   let cursor = "";
   let total = 0;
   for (let pageNumber = 0; pageNumber < 25; pageNumber += 1) {
@@ -40,6 +38,13 @@ async function countBadges() {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=60");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
+  if (req.method && req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   const apiKey = process.env.ROBLOX_API_KEY || "";
 
   const [userR, friendsR, followersR, badgesR, presenceR, avatarR] = await Promise.all([
