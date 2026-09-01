@@ -5,15 +5,8 @@ import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { ExternalLink } from "lucide-react";
 import "./RobloxProfile.css";
 
-function formatNumber(value) {
-  return value == null ? "—" : new Intl.NumberFormat("en-US").format(value);
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(value));
-}
-
+function formatNumber(value) { return value == null ? "—" : new Intl.NumberFormat("en-US").format(value); }
+function formatDate(value) { if (!value) return "—"; return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(value)); }
 function relativeTime(value) {
   if (!value) return "last seen unavailable";
   const date = new Date(value);
@@ -28,7 +21,6 @@ function relativeTime(value) {
   if (days < 30) return `${days}d ago`;
   return formatDate(value);
 }
-
 function cdnUrl(hash) {
   if (!hash) return "";
   let i = 31;
@@ -45,7 +37,6 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
     setFailed(false);
     const mount = mountRef.current;
     if (!mount) return undefined;
-
     let disposed = false;
     let frame;
     let avatar;
@@ -53,14 +44,12 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
     const camera = new THREE.PerspectiveCamera(25, 1, 0.01, 1000);
     camera.position.set(0, 1.72, 6.35);
     camera.lookAt(0, 1.72, 0);
-
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
     mount.appendChild(renderer.domElement);
 
-    // Neutral lighting prevents the Roblox skin/clothing textures from getting a purple/red tint.
     scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 1.9));
     const key = new THREE.DirectionalLight(0xffffff, 2.2);
     key.position.set(3, 5, 6);
@@ -76,7 +65,6 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
       if (hash && /^[A-Za-z0-9_-]{24,}$/.test(hash)) return cdnUrl(hash);
       return url;
     });
-
     const mtlLoader = new MTLLoader(manager);
     const objLoader = new OBJLoader(manager);
 
@@ -95,13 +83,10 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
         objLoader.setMaterials(materials);
         avatar = await new Promise((resolve, reject) => objLoader.load(model.objUrl, resolve, undefined, reject));
         if (disposed) return;
-
-        // Fit the complete avatar by height and place its feet near the bottom of the stage.
         const rawBox = new THREE.Box3().setFromObject(avatar);
         const rawSize = rawBox.getSize(new THREE.Vector3());
         const height = Math.max(rawSize.y, 0.001);
         avatar.scale.setScalar(3.45 / height);
-
         const box = new THREE.Box3().setFromObject(avatar);
         const center = box.getCenter(new THREE.Vector3());
         avatar.position.x -= center.x;
@@ -109,11 +94,8 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
         avatar.position.y -= box.min.y;
         avatar.position.y -= 0.08;
         scene.add(avatar);
-      } catch (_) {
-        if (!disposed) setFailed(true);
-      }
+      } catch (_) { if (!disposed) setFailed(true); }
     };
-
     const resize = () => {
       const width = Math.max(1, mount.clientWidth);
       const height = Math.max(1, mount.clientHeight);
@@ -125,7 +107,6 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
     const observer = new ResizeObserver(resize);
     observer.observe(mount);
     load();
-
     const animate = () => {
       if (disposed) return;
       frame = requestAnimationFrame(animate);
@@ -133,23 +114,20 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
       renderer.render(scene, camera);
     };
     animate();
-
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
       observer.disconnect();
-      if (avatar) {
-        avatar.traverse((child) => {
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) {
-            const materials = Array.isArray(child.material) ? child.material : [child.material];
-            materials.forEach((material) => {
-              Object.values(material).forEach((value) => { if (value?.isTexture) value.dispose(); });
-              material.dispose();
-            });
-          }
-        });
-      }
+      if (avatar) avatar.traverse((child) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+          materials.forEach((material) => {
+            Object.values(material).forEach((value) => { if (value?.isTexture) value.dispose(); });
+            material.dispose();
+          });
+        }
+      });
       renderer.dispose();
       renderer.domElement.remove();
     };
@@ -173,25 +151,6 @@ export default function RobloxProfile() {
       try {
         const response = await fetch("/api/roblox", { cache: "no-store" });
         const next = await response.json();
-
-        // Roblox does not expose historical last-played-game data. Persist the last
-        // game observed while this profile is in-game so later visits can show it.
-        try {
-          const stored = JSON.parse(localStorage.getItem("roblox-last-played") || "null");
-          if (next?.presence?.type === 2 && next?.presence?.game?.name) {
-            const current = {
-              name: next.presence.game.name,
-              universeId: next.presence.game.universeId || null,
-              rootPlaceId: next.presence.game.rootPlaceId || null,
-              at: new Date().toISOString(),
-            };
-            localStorage.setItem("roblox-last-played", JSON.stringify(current));
-            next.lastPlayed = current;
-          } else if (stored?.name) {
-            next.lastPlayed = stored;
-          }
-        } catch (_) {}
-
         if (alive) setData(next);
       } catch (_) {
         if (alive) setData({ error: true });
@@ -206,21 +165,14 @@ export default function RobloxProfile() {
 
   const user = data?.user;
   const presence = data?.presence || {};
+  const activity = data?.activity || {};
   const online = presence.type === 1 || presence.type === 2 || presence.type === 3;
   const playing = presence.type === 2;
   const studio = presence.type === 3;
   const statusText = playing ? "in-game" : studio ? "in studio" : online ? "online" : "offline";
-  const activityText = playing
-    ? (presence.game?.name || "Roblox")
-    : studio
-      ? "Roblox Studio"
-      : data?.lastPlayed?.name || "no recent game recorded";
+  const activityText = playing ? (presence.game?.name || "Roblox") : studio ? "Roblox Studio" : activity.lastPlayed?.name || "no recent game recorded";
   const activityLabel = playing ? "Currently playing" : studio ? "Currently in" : "Last played";
-  const activityMeta = playing
-    ? "active now"
-    : data?.lastPlayed?.at
-      ? `recorded ${relativeTime(data.lastPlayed.at)}`
-      : relativeTime(presence.lastOnline);
+  const activityMeta = playing ? "active now" : activity.lastPlayed?.at ? `recorded ${relativeTime(activity.lastPlayed.at)}` : "not recorded yet";
 
   return (
     <div className="roblox-profile cursor-target">
@@ -239,28 +191,24 @@ export default function RobloxProfile() {
 
       <div className="roblox-profile-body">
         <RobloxAvatar3D model={data?.model} fallbackUrl={data?.avatarUrl} loading={loading} />
-
         <div className="roblox-details">
           <div className="roblox-activity">
             <span>{activityLabel}</span>
             <strong>{loading ? "loading…" : activityText}</strong>
             <small>{activityMeta}</small>
           </div>
-
           <div className="roblox-stats">
             <div><b>{formatNumber(data?.friends)}</b><span>Friends</span></div>
             <div><b>{formatNumber(data?.followers)}</b><span>Followers</span></div>
             <div><b>{formatNumber(data?.badges)}</b><span>Badges</span></div>
           </div>
-
           <div className="roblox-created">
             <span>Account created</span>
             <strong>{formatDate(user?.created)}</strong>
           </div>
-
           <div className="roblox-last-seen">
             <span>Last seen</span>
-            <strong>{online ? "online now" : relativeTime(presence.lastOnline)}</strong>
+            <strong>{online ? "online now" : relativeTime(activity.lastSeen || presence.lastOnline)}</strong>
           </div>
         </div>
       </div>
