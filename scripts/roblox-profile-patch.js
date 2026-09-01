@@ -9,6 +9,9 @@ let source = fs.readFileSync(file, "utf8");
 if (!source.includes('import RobloxProfile from "./RobloxProfile";')) {
   source = source.replace('import LogoLoop from "./LogoLoop";', 'import LogoLoop from "./LogoLoop";\nimport RobloxProfile from "./RobloxProfile";');
 }
+if (!source.includes('import "./MinecraftProfile.css";')) {
+  source = source.replace('import "./styles.css";', 'import "./styles.css";\nimport "./MinecraftProfile.css";');
+}
 
 const start = source.indexOf("function Games(){");
 const end = source.indexOf("function GameCard(", start);
