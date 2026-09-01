@@ -1,0 +1,19 @@
+name: Roblox Activity Tracker
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Roblox activity
+        env:
+          SITE_URL: https://draven-six.vercel.app
+          ROBLOX_TRACK_SECRET: ${{ secrets.ROBLOX_TRACK_SECRET }}
+        run: |
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${ROBLOX_TRACK_SECRET}" \
+            "${SITE_URL}/api/roblox-track"
