@@ -50,8 +50,9 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
     let frame;
     let avatar;
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(28, 1, 0.01, 1000);
-    camera.position.set(0, 1.9, 5.8);
+    const camera = new THREE.PerspectiveCamera(25, 1, 0.01, 1000);
+    camera.position.set(0, 1.72, 6.35);
+    camera.lookAt(0, 1.72, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -59,13 +60,14 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
     renderer.setClearColor(0x000000, 0);
     mount.appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x24133f, 2.5));
-    const key = new THREE.DirectionalLight(0xffffff, 3.2);
-    key.position.set(3, 5, 5);
+    // Neutral lighting prevents the Roblox skin/clothing textures from getting a purple/red tint.
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 1.9));
+    const key = new THREE.DirectionalLight(0xffffff, 2.2);
+    key.position.set(3, 5, 6);
     scene.add(key);
-    const rim = new THREE.DirectionalLight(0x8d5cff, 2.4);
-    rim.position.set(-4, 3, -4);
-    scene.add(rim);
+    const fill = new THREE.DirectionalLight(0xffffff, 0.9);
+    fill.position.set(-4, 3, 4);
+    scene.add(fill);
 
     const manager = new THREE.LoadingManager();
     manager.setURLModifier((url) => {
@@ -87,18 +89,25 @@ function RobloxAvatar3D({ model, fallbackUrl, loading }) {
           material.transparent = false;
           material.alphaTest = 0.01;
           material.side = THREE.DoubleSide;
+          if (material.color) material.color.setRGB(1, 1, 1);
+          material.needsUpdate = true;
         });
         objLoader.setMaterials(materials);
         avatar = await new Promise((resolve, reject) => objLoader.load(model.objUrl, resolve, undefined, reject));
         if (disposed) return;
 
+        // Fit the complete avatar by height and place its feet near the bottom of the stage.
+        const rawBox = new THREE.Box3().setFromObject(avatar);
+        const rawSize = rawBox.getSize(new THREE.Vector3());
+        const height = Math.max(rawSize.y, 0.001);
+        avatar.scale.setScalar(3.45 / height);
+
         const box = new THREE.Box3().setFromObject(avatar);
-        const size = box.getSize(new THREE.Vector3());
-        const maxSize = Math.max(size.x, size.y, size.z) || 1;
-        avatar.scale.setScalar(4.0 / maxSize);
-        const scaledBox = new THREE.Box3().setFromObject(avatar);
-        avatar.position.sub(scaledBox.getCenter(new THREE.Vector3()));
-        avatar.position.y -= 0.05;
+        const center = box.getCenter(new THREE.Vector3());
+        avatar.position.x -= center.x;
+        avatar.position.z -= center.z;
+        avatar.position.y -= box.min.y;
+        avatar.position.y -= 0.08;
         scene.add(avatar);
       } catch (_) {
         if (!disposed) setFailed(true);
@@ -164,6 +173,25 @@ export default function RobloxProfile() {
       try {
         const response = await fetch("/api/roblox", { cache: "no-store" });
         const next = await response.json();
+
+        // Roblox does not expose historical last-played-game data. Persist the last
+        // game observed while this profile is in-game so later visits can show it.
+        try {
+          const stored = JSON.parse(localStorage.getItem("roblox-last-played") || "null");
+          if (next?.presence?.type === 2 && next?.presence?.game?.name) {
+            const current = {
+              name: next.presence.game.name,
+              universeId: next.presence.game.universeId || null,
+              rootPlaceId: next.presence.game.rootPlaceId || null,
+              at: new Date().toISOString(),
+            };
+            localStorage.setItem("roblox-last-played", JSON.stringify(current));
+            next.lastPlayed = current;
+          } else if (stored?.name) {
+            next.lastPlayed = stored;
+          }
+        } catch (_) {}
+
         if (alive) setData(next);
       } catch (_) {
         if (alive) setData({ error: true });
@@ -172,7 +200,7 @@ export default function RobloxProfile() {
       }
     };
     load();
-    const interval = setInterval(load, 60000);
+    const interval = setInterval(load, 30000);
     return () => { alive = false; clearInterval(interval); };
   }, []);
 
@@ -182,8 +210,17 @@ export default function RobloxProfile() {
   const playing = presence.type === 2;
   const studio = presence.type === 3;
   const statusText = playing ? "in-game" : studio ? "in studio" : online ? "online" : "offline";
-  const activityText = playing ? (presence.game?.name || "Roblox") : studio ? "Roblox Studio" : "offline";
-  const activityLabel = playing ? "Currently playing" : studio ? "Currently in" : online ? "Online" : "Last played";
+  const activityText = playing
+    ? (presence.game?.name || "Roblox")
+    : studio
+      ? "Roblox Studio"
+      : data?.lastPlayed?.name || "no recent game recorded";
+  const activityLabel = playing ? "Currently playing" : studio ? "Currently in" : "Last played";
+  const activityMeta = playing
+    ? "active now"
+    : data?.lastPlayed?.at
+      ? `recorded ${relativeTime(data.lastPlayed.at)}`
+      : relativeTime(presence.lastOnline);
 
   return (
     <div className="roblox-profile cursor-target">
@@ -207,7 +244,7 @@ export default function RobloxProfile() {
           <div className="roblox-activity">
             <span>{activityLabel}</span>
             <strong>{loading ? "loading…" : activityText}</strong>
-            <small>{online ? "active now" : relativeTime(presence.lastOnline)}</small>
+            <small>{activityMeta}</small>
           </div>
 
           <div className="roblox-stats">
@@ -219,6 +256,11 @@ export default function RobloxProfile() {
           <div className="roblox-created">
             <span>Account created</span>
             <strong>{formatDate(user?.created)}</strong>
+          </div>
+
+          <div className="roblox-last-seen">
+            <span>Last seen</span>
+            <strong>{online ? "online now" : relativeTime(presence.lastOnline)}</strong>
           </div>
         </div>
       </div>
