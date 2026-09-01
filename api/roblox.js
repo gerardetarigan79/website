@@ -1,81 +1,108 @@
 const USER_ID = "331953010";
 
 async function getJson(url, options = {}) {
-  const response = await fetch(url, options);
-  if (!response.ok) throw new Error(`Roblox returned ${response.status}`);
+  const response = await fetch(url, {
+    ...options,
+    signal: options.signal || AbortSignal.timeout(8000),
+  });
+  if (!response.ok) {
+    const error = new Error(`Roblox returned ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
   return response.json();
 }
 
+async function safe(label, task) {
+  try {
+    return { ok: true, value: await task() };
+  } catch (error) {
+    return { ok: false, error: `${label}: ${error.message || "request failed"}`, status: error.status || null };
+  }
+}
+
 async function countBadges() {
+  // Badge counts are the slowest profile request. Keep it bounded so one
+  // Roblox pagination issue can never make the entire profile unavailable.
   let cursor = "";
   let total = 0;
-  do {
+  for (let pageNumber = 0; pageNumber < 25; pageNumber += 1) {
     const query = new URLSearchParams({ limit: "100", sortOrder: "Desc" });
     if (cursor) query.set("cursor", cursor);
-    const page = await getJson(`https://badges.roblox.com/v1/users/${USER_ID}/badges?${query}`);
+    const page = await getJson(`https://badges.roblox.com/v1/users/${USER_ID}/badges?${query}`, {
+      signal: AbortSignal.timeout(5000),
+    });
     total += page?.data?.length || 0;
     cursor = page?.nextPageCursor || "";
-  } while (cursor);
+    if (!cursor) return total;
+  }
   return total;
 }
 
 export default async function handler(req, res) {
-  try {
-    const apiKey = process.env.ROBLOX_API_KEY || "";
+  const apiKey = process.env.ROBLOX_API_KEY || "";
 
-    const [user, friends, followers, following, badges, presence] = await Promise.all([
-      getJson(`https://users.roblox.com/v1/users/${USER_ID}`),
-      getJson(`https://friends.roblox.com/v1/users/${USER_ID}/friends/count`),
-      getJson(`https://friends.roblox.com/v1/users/${USER_ID}/followers/count`),
-      getJson(`https://friends.roblox.com/v1/users/${USER_ID}/followings/count`),
-      countBadges(),
-      getJson("https://presence.roblox.com/v1/presence/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userIds: [Number(USER_ID)] }),
-      }),
-    ]);
-
-    let modelUrl = "";
-    let modelState = "unavailable";
-    if (apiKey) {
-      try {
-        const model = await getJson(
-          `https://thumbnails.roblox.com/v1/users/avatar-3d?userId=${USER_ID}&useGltf=true`,
-          { headers: { "x-api-key": apiKey } },
-        );
-        modelUrl = model?.imageUrl || "";
-        modelState = model?.state || "unavailable";
-      } catch (_) {
-        modelState = "error";
-      }
-    }
-
-    const avatar = await getJson(
+  const [userR, friendsR, followersR, badgesR, presenceR, avatarR] = await Promise.all([
+    safe("profile", () => getJson(`https://users.roblox.com/v1/users/${USER_ID}`)),
+    safe("friends", () => getJson(`https://friends.roblox.com/v1/users/${USER_ID}/friends/count`)),
+    safe("followers", () => getJson(`https://friends.roblox.com/v1/users/${USER_ID}/followers/count`)),
+    safe("badges", () => countBadges()),
+    safe("presence", () => getJson("https://presence.roblox.com/v1/presence/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userIds: [Number(USER_ID)] }),
+    })),
+    safe("avatar", () => getJson(
       `https://thumbnails.roblox.com/v1/users/avatar?userIds=${USER_ID}&size=420x420&format=Png&isCircular=false`,
-    );
-    const imageUrl = avatar?.data?.[0]?.imageUrl || "";
-    const p = presence?.userPresences?.[0] || {};
+    )),
+  ]);
 
-    return res.status(200).json({
-      user: { id: user.id, username: user.name, displayName: user.displayName, created: user.created },
-      avatarUrl: imageUrl,
-      modelUrl,
-      modelState,
-      friends: friends.count || 0,
-      followers: followers.count || 0,
-      following: following.count || 0,
-      badges,
-      presence: {
-        type: p.userPresenceType ?? 0,
-        lastLocation: p.lastLocation || "",
-        lastOnline: p.lastOnline || null,
-        placeId: p.placeId || null,
-        universeId: p.universeId || null,
-      },
-      fetchedAt: new Date().toISOString(),
-    });
-  } catch (e) {
-    return res.status(502).json({ error: e.message || "Roblox unavailable" });
+  const diagnostics = {
+    profile: userR.ok ? "ok" : userR.error,
+    friends: friendsR.ok ? "ok" : friendsR.error,
+    followers: followersR.ok ? "ok" : followersR.error,
+    badges: badgesR.ok ? "ok" : badgesR.error,
+    presence: presenceR.ok ? "ok" : presenceR.error,
+    avatar: avatarR.ok ? "ok" : avatarR.error,
+    threeD: apiKey ? "checking" : "missing ROBLOX_API_KEY",
+  };
+
+  let modelUrl = "";
+  let modelState = "unavailable";
+  if (apiKey) {
+    const modelR = await safe("3d avatar", () => getJson(
+      `https://thumbnails.roblox.com/v1/users/avatar-3d?userId=${USER_ID}&useGltf=true`,
+      { headers: { "x-api-key": apiKey } },
+    ));
+    if (modelR.ok) {
+      modelUrl = modelR.value?.imageUrl || "";
+      modelState = modelR.value?.state || "unknown";
+      diagnostics.threeD = modelUrl ? `ok (${modelState})` : `no model URL (${modelState})`;
+    } else {
+      diagnostics.threeD = modelR.error;
+    }
   }
+
+  const user = userR.ok ? userR.value : null;
+  const p = presenceR.ok ? presenceR.value?.userPresences?.[0] || {} : {};
+  const avatarUrl = avatarR.ok ? avatarR.value?.data?.[0]?.imageUrl || "" : "";
+
+  return res.status(200).json({
+    user: user ? { id: user.id, username: user.name, displayName: user.displayName, created: user.created } : null,
+    avatarUrl,
+    modelUrl,
+    modelState,
+    friends: friendsR.ok ? friendsR.value?.count || 0 : null,
+    followers: followersR.ok ? followersR.value?.count || 0 : null,
+    badges: badgesR.ok ? badgesR.value : null,
+    presence: {
+      type: p.userPresenceType ?? 0,
+      lastLocation: p.lastLocation || "",
+      lastOnline: p.lastOnline || null,
+      placeId: p.placeId || null,
+      universeId: p.universeId || null,
+    },
+    diagnostics,
+    fetchedAt: new Date().toISOString(),
+  });
 }
