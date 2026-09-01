@@ -21,18 +21,50 @@ async function safe(label, task) {
   }
 }
 
-async function countBadges() {
-  let cursor = "";
+function cdnUrl(hash) {
+  if (!hash) return "";
+  let i = 31;
+  for (let t = 0; t < Math.min(38, hash.length); t += 1) i ^= hash[t].charCodeAt(0);
+  return `https://t${((i % 8) + 8) % 8}.rbxcdn.com/${hash}`;
+}
+
+async function getAvatar3D(apiKey) {
+  const thumbnail = await getJson(
+    `https://thumbnails.roblox.com/v1/users/avatar-3d?userId=${USER_ID}`,
+    { headers: { "x-api-key": apiKey } },
+  );
+  const item = thumbnail?.data?.[0] || thumbnail;
+  if (!item?.imageUrl || item?.state !== "Completed") {
+    throw new Error(`avatar thumbnail state: ${item?.state || "unavailable"}`);
+  }
+
+  const descriptor = await getJson(item.imageUrl);
+  return {
+    descriptorUrl: item.imageUrl,
+    objUrl: cdnUrl(descriptor.obj),
+    mtlUrl: cdnUrl(descriptor.mtl),
+    textureUrls: Array.isArray(descriptor.textures) ? descriptor.textures.map(cdnUrl) : [],
+    aabb: descriptor.aabb || null,
+    camera: descriptor.camera || null,
+  };
+}
+
+async function countInventoryBadges(apiKey) {
+  let pageToken = "";
   let total = 0;
-  for (let pageNumber = 0; pageNumber < 25; pageNumber += 1) {
-    const query = new URLSearchParams({ limit: "100", sortOrder: "Desc" });
-    if (cursor) query.set("cursor", cursor);
-    const page = await getJson(`https://badges.roblox.com/v1/users/${USER_ID}/badges?${query}`, {
-      signal: AbortSignal.timeout(5000),
+  for (let pageNumber = 0; pageNumber < 100; pageNumber += 1) {
+    const params = new URLSearchParams({
+      maxPageSize: "100",
+      "filter": "badges=true",
     });
-    total += page?.data?.length || 0;
-    cursor = page?.nextPageCursor || "";
-    if (!cursor) return total;
+    if (pageToken) params.set("pageToken", pageToken);
+    const page = await getJson(
+      `https://apis.roblox.com/cloud/v2/users/${USER_ID}/inventory-items?${params.toString()}`,
+      { headers: { "x-api-key": apiKey } },
+    );
+    total += Array.isArray(page?.inventoryItems) ? page.inventoryItems.length : 0;
+    pageToken = page?.nextPageToken || "";
+    if (!pageToken || !page?.inventoryItems?.length) return total;
   }
   return total;
 }
@@ -47,17 +79,16 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.ROBLOX_API_KEY || "";
 
-  const [userR, friendsR, followersR, badgesR, presenceR, lastOnlineR, avatarR] = await Promise.all([
+  const [userR, friendsR, followersR, presenceR, lastOnlineR, avatarR] = await Promise.all([
     safe("profile", () => getJson(`https://users.roblox.com/v1/users/${USER_ID}`)),
     safe("friends", () => getJson(`https://friends.roblox.com/v1/users/${USER_ID}/friends/count`)),
     safe("followers", () => getJson(`https://friends.roblox.com/v1/users/${USER_ID}/followers/count`)),
-    safe("badges", () => countBadges()),
     safe("presence", () => getJson("https://presence.roblox.com/v1/presence/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userIds: [Number(USER_ID)] }),
     })),
-    safe("last online", () => getJson(`https://presence.roblox.com/v1/presence/last-online`, {
+    safe("last online", () => getJson("https://presence.roblox.com/v1/presence/last-online", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userIds: [Number(USER_ID)] }),
@@ -71,26 +102,32 @@ export default async function handler(req, res) {
     profile: userR.ok ? "ok" : userR.error,
     friends: friendsR.ok ? "ok" : friendsR.error,
     followers: followersR.ok ? "ok" : followersR.error,
-    badges: badgesR.ok ? "ok" : badgesR.error,
     presence: presenceR.ok ? "ok" : presenceR.error,
     lastOnline: lastOnlineR.ok ? "ok" : lastOnlineR.error,
     avatar: avatarR.ok ? "ok" : avatarR.error,
     threeD: apiKey ? "checking" : "missing ROBLOX_API_KEY",
+    badges: apiKey ? "checking" : "missing ROBLOX_API_KEY",
   };
 
-  let modelUrl = "";
-  let modelState = "unavailable";
+  let model = null;
   if (apiKey) {
-    const modelR = await safe("3d avatar", () => getJson(
-      `https://thumbnails.roblox.com/v1/users/avatar-3d?userId=${USER_ID}&useGltf=true`,
-      { headers: { "x-api-key": apiKey } },
-    ));
+    const modelR = await safe("3d avatar", () => getAvatar3D(apiKey));
     if (modelR.ok) {
-      modelUrl = modelR.value?.imageUrl || "";
-      modelState = modelR.value?.state || "unknown";
-      diagnostics.threeD = modelUrl ? `ok (${modelState})` : `no model URL (${modelState})`;
+      model = modelR.value;
+      diagnostics.threeD = "ok";
     } else {
       diagnostics.threeD = modelR.error;
+    }
+  }
+
+  let badges = null;
+  if (apiKey) {
+    const badgeR = await safe("inventory badges", () => countInventoryBadges(apiKey));
+    if (badgeR.ok) {
+      badges = badgeR.value;
+      diagnostics.badges = "ok";
+    } else {
+      diagnostics.badges = badgeR.error;
     }
   }
 
@@ -102,7 +139,7 @@ export default async function handler(req, res) {
   const avatarUrl = avatarR.ok ? avatarR.value?.data?.[0]?.imageUrl || "" : "";
 
   let game = null;
-  if (p.universeId) {
+  if (p.universeId && (p.userPresenceType === 2 || p.userPresenceType === 3)) {
     const gameR = await safe("game", () => getJson(`https://games.roblox.com/v1/games?universeIds=${p.universeId}`));
     if (gameR.ok) {
       const g = gameR.value?.data?.[0];
@@ -111,18 +148,13 @@ export default async function handler(req, res) {
     diagnostics.game = game ? "ok" : "game info unavailable";
   }
 
-  const badgeCount = badgesR.ok && badgesR.value > 0 ? badgesR.value : null;
-  const badgeStatus = badgesR.ok && badgesR.value === 0 ? "unavailable" : badgesR.ok ? "ok" : "unavailable";
-
   return res.status(200).json({
     user: user ? { id: user.id, username: user.name, displayName: user.displayName, created: user.created } : null,
     avatarUrl,
-    modelUrl,
-    modelState,
+    model,
     friends: friendsR.ok ? friendsR.value?.count ?? null : null,
     followers: followersR.ok ? followersR.value?.count ?? null : null,
-    badges: badgeCount,
-    badgeStatus,
+    badges,
     presence: {
       type: p.userPresenceType ?? 0,
       lastLocation: p.lastLocation || "",
