@@ -13,35 +13,35 @@ if (legacyRegex.test(source)) source = source.replace(legacyRegex, newCard);
 else if (generatedRegex.test(source)) source = source.replace(generatedRegex, newCard);
 else throw new Error("minecraft-card-patch: could not locate Minecraft card in src/main.jsx");
 
-const marker = "/* Minecraft compact layout override v3 */";
+const marker = "/* Minecraft compact layout override v4 */";
 const css = `
 
 ${marker}
 .game-grid{align-items:start}
 .game-card.minecraft-card{height:auto;align-self:start}
-.minecraft-visual{height:125px;min-height:125px}
-.minecraft-visual .minecraft{height:118px}
-.minecraft-info{padding:7px}
-.minecraft-title-row{gap:6px}
-.minecraft-title-row .kicker{font-size:4.5px;margin-bottom:1px}
-.minecraft-title-row strong{font-size:10px}
-.minecraft-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin-top:5px}
-.minecraft-stats>div{padding:4px 3px;border-radius:4px}
-.minecraft-stats b{font-size:6.5px}
-.minecraft-stats span{font-size:4px;margin-top:1px}
-.minecraft-client{margin-top:5px;padding-top:4px;font-size:5px}
-.minecraft-client img{width:10px;height:10px}
-.minecraft-bedwars{margin-top:4px;padding-top:4px}
-.minecraft-bedwars-head{font-size:4px}
-.minecraft-bedwars-head b{font-size:5.5px}
-.minecraft-bedwars-grid{gap:3px;margin-top:3px}
-.minecraft-bedwars-grid span{gap:1px;font-size:3.5px}
-.minecraft-bedwars-grid b{font-size:5.5px}
-#games{align-items:flex-start;padding-top:58px}
-@media(max-width:700px){#games{padding-top:48px}.minecraft-visual{height:120px;min-height:120px}.minecraft-visual .minecraft{height:113px}.minecraft-info{padding:7px}.minecraft-stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.minecraft-visual{height:145px;min-height:145px}
+.minecraft-visual .minecraft{height:138px}
+.minecraft-info{padding:10px}
+.minecraft-title-row{gap:8px}
+.minecraft-title-row .kicker{font-size:5.5px;margin-bottom:2px}
+.minecraft-title-row strong{font-size:12px}
+.minecraft-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
+.minecraft-stats>div{padding:6px 5px;border-radius:5px}
+.minecraft-stats b{font-size:8px}
+.minecraft-stats span{font-size:5px;margin-top:2px}
+.minecraft-client{margin-top:8px;padding-top:7px;font-size:6px}
+.minecraft-client img{width:12px;height:12px}
+.minecraft-bedwars{margin-top:7px;padding-top:7px}
+.minecraft-bedwars-head{font-size:5px}
+.minecraft-bedwars-head b{font-size:7px}
+.minecraft-bedwars-grid{grid-template-columns:1fr 1fr 1.4fr;gap:5px;margin-top:5px}
+.minecraft-bedwars-grid span{gap:2px;font-size:5px}
+.minecraft-bedwars-grid b{font-size:7px}
+#games{align-items:flex-start;padding-top:50px}
+@media(max-width:700px){#games{padding-top:42px}.minecraft-visual{height:135px;min-height:135px}.minecraft-visual .minecraft{height:128px}.minecraft-info{padding:9px}.minecraft-stats{gap:4px}.minecraft-bedwars-grid{grid-template-columns:1fr 1fr 1.3fr}}
 `;
 if (!styles.includes(marker)) styles += css;
 
 fs.writeFileSync(mainPath, source);
 fs.writeFileSync(stylesPath, styles);
-console.log("minecraft-card-patch: compacted Minecraft card, stopped Roblox height stretching, and improved Games entry visibility");
+console.log("minecraft-card-patch: reformatted Minecraft card with breathing room and compact grouped stats");
