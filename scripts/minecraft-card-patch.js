@@ -5,13 +5,19 @@ const stylesPath = "src/styles.css";
 let source = fs.readFileSync(mainPath, "utf8");
 let styles = fs.readFileSync(stylesPath, "utf8");
 
-const oldCard = '<GameCard title="Minecraft" subtitle="iDraven" href="https://namemc.com/profile/iDraven.6"><img className="minecraft" src="https://mc-heads.net/body/iDraven/320" alt="Minecraft character"/></GameCard>';
 const newCard = '<a className="game-card minecraft-card cursor-target" href="https://namemc.com/profile/iDraven.6" target="_blank" rel="noreferrer"><div className="game-visual minecraft-visual"><img className="minecraft" src="https://mc-heads.net/body/iDraven/320" alt="Minecraft character"/></div><div className="minecraft-info"><div className="minecraft-title-row"><div><span className="kicker">MINECRAFT</span><strong>iDraven</strong></div><ExternalLink size={11}/></div><div className="minecraft-stats"><div><b>3</b><span>CAPES</span></div><div><b>Dec 19, 2021</b><span>JOINED</span></div><div><b>Java</b><span>EDITION</span></div></div><div className="minecraft-client"><span className="minecraft-lunar-mark">◐</span><span>Client:</span><b>Lunar Client</b></div><div className="minecraft-bedwars"><div className="minecraft-bedwars-head"><span>HYPIXEL · BEDWARS</span><b>MVP+</b></div><div className="minecraft-bedwars-grid"><span><b>6.396</b>FKDR</span><span><b>2.133</b>WLR</span><span><b>13</b>LUNAR COSMETICS</span></div></div></div></a>';
 
-// Replace the entire legacy Minecraft card so the old cape count and account-age
-// fields cannot survive the patch. If already patched, leave it untouched.
-const gameCardRegex = /<GameCard\s+title=["']Minecraft["'][\s\S]*?<\/GameCard>/;
-if (gameCardRegex.test(source)) source = source.replace(gameCardRegex, newCard);
+// Always enforce the canonical Minecraft card, including when a previous build
+// step has already replaced the original GameCard.
+const legacyRegex = /<GameCard\s+title=["']Minecraft["'][\s\S]*?<\/GameCard>/;
+const generatedRegex = /<a\s+className=["']game-card minecraft-card[\s\S]*?<\/a>/;
+if (legacyRegex.test(source)) {
+  source = source.replace(legacyRegex, newCard);
+} else if (generatedRegex.test(source)) {
+  source = source.replace(generatedRegex, newCard);
+} else {
+  throw new Error("minecraft-card-patch: could not locate Minecraft card in src/main.jsx");
+}
 
 const marker = "/* Minecraft profile card: hardcoded profile metadata requested for iDraven. */";
 const css = `
@@ -45,4 +51,4 @@ if (!styles.includes(marker)) styles += css;
 
 fs.writeFileSync(mainPath, source);
 fs.writeFileSync(stylesPath, styles);
-console.log("minecraft-card-patch: enforced requested Minecraft metadata (3 capes, Dec 19 2021 join date, MVP+, 13 Lunar Client cosmetics, 6.396 FKDR, 2.133 WLR)");
+console.log("minecraft-card-patch: enforced requested Minecraft metadata");
