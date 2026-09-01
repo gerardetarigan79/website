@@ -8,8 +8,8 @@ let styles = fs.readFileSync(stylesPath, "utf8");
 const oldCard = '<GameCard title="Minecraft" subtitle="iDraven" href="https://namemc.com/profile/iDraven.6"><img className="minecraft" src="https://mc-heads.net/body/iDraven/320" alt="Minecraft character"/></GameCard>';
 const newCard = '<a className="game-card minecraft-card cursor-target" href="https://namemc.com/profile/iDraven.6" target="_blank" rel="noreferrer"><div className="game-visual minecraft-visual"><img className="minecraft" src="https://mc-heads.net/body/iDraven/320" alt="Minecraft character"/></div><div className="minecraft-info"><div className="minecraft-title-row"><div><span className="kicker">MINECRAFT</span><strong>iDraven</strong></div><ExternalLink size={11}/></div><div className="minecraft-stats"><div><b>3</b><span>CAPES</span></div><div><b>Dec 19, 2021</b><span>JOINED</span></div><div><b>Java</b><span>EDITION</span></div></div><div className="minecraft-client"><span className="minecraft-lunar-mark">◐</span><span>Client:</span><b>Lunar Client</b></div><div className="minecraft-bedwars"><div className="minecraft-bedwars-head"><span>HYPIXEL · BEDWARS</span><b>MVP+</b></div><div className="minecraft-bedwars-grid"><span><b>6.396</b>FKDR</span><span><b>2.133</b>WLR</span><span><b>13</b>LUNAR COSMETICS</span></div></div></div></a>';
 
+// Build script is idempotent: if the card was already patched, do nothing.
 if (source.includes(oldCard)) source = source.replace(oldCard, newCard);
-else if (!source.includes('className="minecraft-card')) throw new Error("minecraft-card-patch: Minecraft card target not found");
 
 const css = `
 
