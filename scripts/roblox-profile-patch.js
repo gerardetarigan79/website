@@ -22,4 +22,3 @@ const replacement = `function Games(){const[steam,setSteam]=useState(null),[mc,s
 source = source.slice(0, start) + replacement + source.slice(end);
 fs.writeFileSync(file, source);
 console.log("Minecraft card now shows cape count, account age, Java edition, Lunar Client, and no BedWars stats");
-`;
