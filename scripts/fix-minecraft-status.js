@@ -54,14 +54,14 @@ ${tweakMarker}
 `;
 }
 
-// Move Lunar Client stats 2px up from the previous 3px-down position.
-const alignmentMarker = "/* Minecraft lunar alignment v27 */";
+// Move Lunar Client stats 1px up from the previous position.
+const alignmentMarker = "/* Minecraft lunar alignment v28 */";
 if (!styles.includes(alignmentMarker)) {
   styles += `
 
 ${alignmentMarker}
-.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,1px)}
-@media(max-width:700px){.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,1px)}}
+.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,0px)}
+@media(max-width:700px){.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,0px)}}
 `;
 }
 
