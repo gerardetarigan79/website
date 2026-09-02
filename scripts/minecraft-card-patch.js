@@ -29,7 +29,7 @@ ${marker}
 .minecraft-name-row h2{font-family:VideoMed,sans-serif;font-size:13px;font-weight:400;color:#eee;margin:1px 0 0}
 .minecraft-display-name{display:block;color:#555;font-size:6px;margin-top:2px}
 .minecraft-open{white-space:nowrap}
-.minecraft-header .roblox-open{transform:scale(1.03);transform-origin:top right}
+.minecraft-header .roblox-open{transform:scale(1.02);transform-origin:top right}
 .minecraft-body{flex:1;min-height:0;display:grid;grid-template-columns:44% 56%;background:transparent!important}
 .minecraft-visual{height:100%;min-height:0;position:relative;display:flex;overflow:hidden;background:transparent!important;padding:0 10px}
 .minecraft-avatar-wrap{flex:1;min-height:0;display:grid;place-items:end center;position:relative;background:transparent!important}
