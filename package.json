@@ -4,8 +4,8 @@
   "version": "2.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/roblox-profile-patch.js && node scripts/replace-adobe-creative-cloud-logo.js && node scripts/logo-loop-fix.js && node scripts/fix-views.js && node scripts/minecraft-card-patch.js && vite",
-    "build": "node scripts/roblox-profile-patch.js && node scripts/replace-adobe-creative-cloud-logo.js && node scripts/logo-loop-fix.js && node scripts/prepare-build.js && node scripts/wire-projects-accordion.js && node scripts/fix-views.js && node scripts/minecraft-card-patch.js && vite build",
+    "dev": "node scripts/roblox-profile-patch.js && node scripts/replace-adobe-creative-cloud-logo.js && node scripts/logo-loop-fix.js && node scripts/fix-views.js && node scripts/minecraft-card-patch.js && node scripts/fix-minecraft-status.js && vite",
+    "build": "node scripts/roblox-profile-patch.js && node scripts/replace-adobe-creative-cloud-logo.js && node scripts/logo-loop-fix.js && node scripts/prepare-build.js && node scripts/wire-projects-accordion.js && node scripts/fix-views.js && node scripts/minecraft-card-patch.js && node scripts/fix-minecraft-status.js && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
