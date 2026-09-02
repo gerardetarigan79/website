@@ -31,10 +31,10 @@ if (!styles.includes(tweakMarker)) {
   styles += `\n\n${tweakMarker}\n.minecraft-info .minecraft-created{transform:translateY(6px)}\n.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,-3px)}\n.minecraft-info .minecraft-secondary-split .minecraft-bedwars-grid b{font-size:8px!important}\n@media(max-width:700px){.minecraft-info .minecraft-created{transform:translateY(6px)}.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,-3px)}.minecraft-info .minecraft-secondary-split .minecraft-bedwars-grid b{font-size:8px!important}}\n`;
 }
 
-// Move Lunar Client stats down 6px to align with the Hypixel Bedwars stats.
-const lunarMarker = "/* Minecraft Lunar alignment v26 */";
-if (!styles.includes(lunarMarker)) {
-  styles += `\n\n${lunarMarker}\n.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,3px)!important}\n@media(max-width:700px){.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,3px)!important}}\n`;
+// Move Lunar Client stats 3px down from the previous 6px-down position.
+const alignmentMarker = "/* Minecraft lunar alignment v26 */";
+if (!styles.includes(alignmentMarker)) {
+  styles += `\n\n${alignmentMarker}\n.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,3px)}\n@media(max-width:700px){.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,3px)}}\n`;
 }
 
 fs.writeFileSync(path, source);
