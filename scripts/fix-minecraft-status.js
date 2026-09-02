@@ -9,7 +9,7 @@ if (source.includes(status)) {
   source = source.replace(status, "");
 }
 
-// Keep Lunar Client and Hypixel Bedwars as two distinct compact stat boxes.
+// Keep Lunar Client and Hypixel Bedwars as two equal-width compact stat boxes.
 source = source.replace(
   '<div className="minecraft-secondary"><div className="minecraft-client">',
   '<div className="minecraft-secondary minecraft-secondary-split"><div className="minecraft-client minecraft-secondary-box">'
@@ -19,11 +19,11 @@ source = source.replace(
   '<div className="minecraft-bedwars minecraft-secondary-box">'
 );
 
-const marker = "/* Minecraft secondary boxes v20 */";
+const marker = "/* Minecraft secondary boxes v21 */";
 if (!styles.includes(marker)) {
-  styles += `\n\n${marker}\n.minecraft-secondary-split{border:none!important;background:transparent!important;padding:0!important;grid-template-columns:max-content max-content!important;gap:6px!important}\n.minecraft-secondary-split .minecraft-secondary-box{border:1px solid #25252b!important;background:#0e0e12!important;border-radius:5px;padding:6px 7px!important}\n@media(max-width:700px){.minecraft-secondary-split{gap:5px!important}.minecraft-secondary-split .minecraft-secondary-box{padding:5px 6px!important}}\n`;
+  styles += `\n\n${marker}\n.minecraft-secondary-split{width:100%;min-width:0;border:none!important;background:transparent!important;padding:0!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;overflow:hidden}\n.minecraft-secondary-split .minecraft-secondary-box{width:100%;min-width:0;max-width:100%;height:42px;border:1px solid #25252b!important;background:#0e0e12!important;border-radius:5px;padding:6px 7px!important;box-sizing:border-box;overflow:hidden}\n.minecraft-secondary-split .minecraft-client{min-width:0;width:100%}\n.minecraft-secondary-split .minecraft-client-info{min-width:0;overflow:hidden}\n.minecraft-secondary-split .minecraft-client-info span{max-width:100%;overflow:hidden;text-overflow:ellipsis}\n.minecraft-secondary-split .minecraft-bedwars{min-width:0;width:100%;overflow:hidden;text-align:right}\n.minecraft-secondary-split .minecraft-bedwars-head,.minecraft-secondary-split .minecraft-bedwars-grid{max-width:100%;overflow:hidden}\n@media(max-width:700px){.minecraft-secondary-split{gap:5px!important}.minecraft-secondary-split .minecraft-secondary-box{height:38px;padding:5px 6px!important}}\n`;
 }
 
 fs.writeFileSync(path, source);
 fs.writeFileSync(stylesPath, styles);
-console.log("fix-minecraft-status: split Lunar Client and Hypixel Bedwars into separate boxes");
+console.log("fix-minecraft-status: made Lunar Client and Hypixel Bedwars equal-width boxes with contained content");
