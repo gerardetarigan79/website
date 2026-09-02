@@ -16,14 +16,16 @@ if (legacyRegex.test(source)) source = source.replace(legacyRegex, newCard);
 else if (generatedRegex.test(source)) source = source.replace(generatedRegex, newCard);
 else throw new Error("minecraft-card-patch: could not locate Minecraft card in src/main.jsx");
 
-const marker = "/* Minecraft Roblox-style profile layout v13 */";
+const marker = "/* Minecraft Roblox-style profile layout v14 */";
 const css = `
 
 ${marker}
 .game-grid{align-items:stretch}
 .game-card.minecraft-card{height:100%;min-height:0;align-self:stretch;display:flex;flex-direction:column;overflow:hidden}
-/* The header intentionally shares Roblox's real header geometry. */
-.minecraft-header{flex:none}
+/* Exact Roblox header geometry/typography: same padding, kicker, name, divider and button. */
+.minecraft-header{flex:none;display:flex;justify-content:space-between;align-items:flex-start;padding:8px 10px;border-bottom:1px solid #222229;min-height:0}
+.minecraft-header .kicker{font-size:10px;color:#505056;margin-bottom:8px;letter-spacing:.04em}
+.minecraft-name-row{display:flex;align-items:center;gap:5px}
 .minecraft-name-row h2{font-family:VideoMed,sans-serif;font-size:13px;font-weight:400;color:#eee;margin:1px 0 0}
 .minecraft-display-name{display:block;color:#555;font-size:6px;margin-top:2px}
 .minecraft-open{white-space:nowrap}
@@ -48,10 +50,10 @@ ${marker}
 .minecraft-bedwars-grid span{display:flex;flex-direction:column;gap:3px;color:#666;font-size:6px}
 .minecraft-bedwars-grid b{color:#aaa;font-size:12px;font-weight:400;line-height:1.1}
 #games{align-items:flex-start;padding-top:42px}
-@media(max-width:700px){.minecraft-header{gap:8px}.minecraft-name-row h2{font-size:13px}.minecraft-display-name{font-size:6px}.game-card.minecraft-card{height:100%}.minecraft-body{grid-template-columns:42% 58%}.minecraft-visual{padding:0 7px}.minecraft-info{padding:9px 8px}.minecraft-stats{grid-template-columns:1fr 1fr;gap:4px}.minecraft-stats>div{padding:7px 5px}.minecraft-stats>div:nth-child(3){grid-column:1/-1}.minecraft-stats b,.minecraft-hypixel b,.minecraft-bedwars-grid b{font-size:10px}.minecraft-stats span,.minecraft-hypixel,.minecraft-client,.minecraft-bedwars-head{font-size:6px}.minecraft-bedwars-grid{grid-template-columns:1fr 1fr 1fr;gap:4px}.minecraft-bedwars-grid span{font-size:5px}}
+@media(max-width:700px){.minecraft-header{gap:8px}.minecraft-header .kicker{font-size:10px;margin-bottom:8px}.minecraft-name-row h2{font-size:13px}.minecraft-display-name{font-size:6px}.game-card.minecraft-card{height:100%}.minecraft-body{grid-template-columns:42% 58%}.minecraft-visual{padding:0 7px}.minecraft-info{padding:9px 8px}.minecraft-stats{grid-template-columns:1fr 1fr;gap:4px}.minecraft-stats>div{padding:7px 5px}.minecraft-stats>div:nth-child(3){grid-column:1/-1}.minecraft-stats b,.minecraft-hypixel b,.minecraft-bedwars-grid b{font-size:10px}.minecraft-stats span,.minecraft-hypixel,.minecraft-client,.minecraft-bedwars-head{font-size:6px}.minecraft-bedwars-grid{grid-template-columns:1fr 1fr 1fr;gap:4px}.minecraft-bedwars-grid span{font-size:5px}}
 `;
 if (!styles.includes(marker)) styles += css;
 
 fs.writeFileSync(mainPath, source);
 fs.writeFileSync(stylesPath, styles);
-console.log("minecraft-card-patch: v13 - Minecraft now uses Roblox header geometry, button sizing, title sizing, and bottom-pinned avatar");
+console.log("minecraft-card-patch: v14 - exact Roblox header geometry and typography, matching open profile button, bottom-pinned avatar");
