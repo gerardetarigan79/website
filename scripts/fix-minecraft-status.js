@@ -26,9 +26,9 @@ if (!styles.includes(marker)) {
 }
 
 // Small visual alignment tweaks requested for the Minecraft card.
-const tweakMarker = "/* Minecraft card micro alignment v24 */";
+const tweakMarker = "/* Minecraft card micro alignment v25 */";
 if (!styles.includes(tweakMarker)) {
-  styles += `\n\n${tweakMarker}\n.minecraft-info .minecraft-created{transform:translateY(3px)}\n.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translateX(3px)}\n.minecraft-info .minecraft-secondary-split .minecraft-bedwars-grid b{font-size:10px!important}\n@media(max-width:700px){.minecraft-info .minecraft-created{transform:translateY(3px)}.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translateX(3px)}.minecraft-info .minecraft-secondary-split .minecraft-bedwars-grid b{font-size:9px!important}}\n`;
+  styles += `\n\n${tweakMarker}\n.minecraft-info .minecraft-created{transform:translateY(6px)}\n.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,-3px)}\n.minecraft-info .minecraft-secondary-split .minecraft-bedwars-grid b{font-size:8px!important}\n@media(max-width:700px){.minecraft-info .minecraft-created{transform:translateY(6px)}.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(3px,-3px)}.minecraft-info .minecraft-secondary-split .minecraft-bedwars-grid b{font-size:8px!important}}\n`;
 }
 
 fs.writeFileSync(path, source);
