@@ -120,6 +120,16 @@ ${finalAccountCreationAlignmentMarker}
 `;
 }
 
+// Make the Minecraft avatar area and its inner wrapper fully transparent.
+const avatarTransparencyMarker = "/* Minecraft avatar transparency v34 */";
+if (!styles.includes(avatarTransparencyMarker)) {
+  styles += `
+
+${avatarTransparencyMarker}
+.minecraft-visual,.minecraft-avatar-wrap{background:transparent!important}
+`;
+}
+
 fs.writeFileSync(path, source);
 fs.writeFileSync(stylesPath, styles);
 console.log("fix-minecraft-status: fine-tuned Minecraft card stat positioning and Bedwars stat size");
