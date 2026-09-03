@@ -109,6 +109,17 @@ ${accountCreationAlignmentMarker}
 `;
 }
 
+// Move the account creation box 1px down from the previous position.
+const finalAccountCreationAlignmentMarker = "/* Minecraft account creation alignment v33 */";
+if (!styles.includes(finalAccountCreationAlignmentMarker)) {
+  styles += `
+
+${finalAccountCreationAlignmentMarker}
+.minecraft-info .minecraft-created{transform:translateY(4px)}
+@media(max-width:700px){.minecraft-info .minecraft-created{transform:translateY(4px)}}
+`;
+}
+
 fs.writeFileSync(path, source);
 fs.writeFileSync(stylesPath, styles);
 console.log("fix-minecraft-status: fine-tuned Minecraft card stat positioning and Bedwars stat size");
