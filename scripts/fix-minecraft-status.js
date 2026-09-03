@@ -98,6 +98,17 @@ ${finalHorizontalAlignmentMarker}
 `;
 }
 
+// Move the account creation box 3px upward without affecting its other positioning.
+const accountCreationAlignmentMarker = "/* Minecraft account creation alignment v32 */";
+if (!styles.includes(accountCreationAlignmentMarker)) {
+  styles += `
+
+${accountCreationAlignmentMarker}
+.minecraft-info .minecraft-created{transform:translateY(3px)}
+@media(max-width:700px){.minecraft-info .minecraft-created{transform:translateY(3px)}}
+`;
+}
+
 fs.writeFileSync(path, source);
 fs.writeFileSync(stylesPath, styles);
 console.log("fix-minecraft-status: fine-tuned Minecraft card stat positioning and Bedwars stat size");
