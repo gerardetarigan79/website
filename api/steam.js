@@ -7,15 +7,29 @@ function allTags(text,name){
   return [...text.matchAll(re)].map(m=>m[1].replace(/<!\[CDATA\[|\]\]>/g,"").trim());
 }
 function num(v){const n=Number.parseFloat(v);return Number.isFinite(n)?n:0}
+async function fetchAvatarFrame(steamId){
+  try{
+    const r=await fetch(`https://steamcommunity.com/profiles/${steamId}/?xml=1`,{headers:{"User-Agent":"Mozilla/5.0"}});
+    if(!r.ok)return null;
+    const text=await r.text();
+    const candidates=["avatarFrame","avatarframe","avatarFrameURL","avatarframeurl","profileAvatarFrame"];
+    for(const name of candidates){
+      const value=tag(text,name);
+      if(value&&/^https?:\\/\\//i.test(value))return value;
+    }
+    return null;
+  }catch{return null}
+}
 export default async function handler(req,res){
   const key=process.env.STEAM_API_KEY;
   const steamId=process.env.STEAM_ID;
   try{
     if(key&&steamId){
-      const [p,g,b]=await Promise.all([
+      const [p,g,b,frame]=await Promise.all([
         fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${key}&steamids=${steamId}`).then(r=>r.json()),
         fetch(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${key}&steamid=${steamId}&include_appinfo=1&include_played_free_games=1`).then(r=>r.json()),
-        fetch(`https://api.steampowered.com/IPlayerService/GetBadges/v1/?key=${key}&steamid=${steamId}`).then(r=>r.json())
+        fetch(`https://api.steampowered.com/IPlayerService/GetBadges/v1/?key=${key}&steamid=${steamId}`).then(r=>r.json()),
+        fetchAvatarFrame(steamId)
       ]);
       const x=p.response?.players?.[0], games=g.response?.games||[];
       const minutes=games.reduce((a,v)=>a+(v.playtime_forever||0),0);
@@ -29,7 +43,8 @@ export default async function handler(req,res){
         friends:"public profile",
         badges:badgeCount,
         age:x?.timecreated?`${Math.floor((Date.now()/1000-x.timecreated)/31557600)}y`:"—",
-        profile:x
+        profile:x,
+        avatarFrame:frame
       });
     }
 
@@ -48,6 +63,7 @@ export default async function handler(req,res){
     const online=tag(profileText,"onlineState");
     const privacy=tag(profileText,"privacyState");
     const badgeCount=tag(profileText,"badgeCount");
+    const frame=tag(profileText,"avatarFrame")||tag(profileText,"avatarframe")||null;
     return res.status(200).json({
       games:games || tag(profileText,"gameCount") || "—",
       playtime:totalHours?`${Math.floor(totalHours).toLocaleString()}h`:"—",
@@ -57,7 +73,8 @@ export default async function handler(req,res){
       age:memberSince || "—",
       online:online || "offline",
       privacy:privacy || "unknown",
-      profile:{personaname:tag(profileText,"steamID")||"chungusanimals"}
+      profile:{personaname:tag(profileText,"steamID")||"chungusanimals"},
+      avatarFrame:frame
     });
   }catch(e){return res.status(502).json({error:e.message})}
 }
