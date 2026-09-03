@@ -76,6 +76,17 @@ ${finalAlignmentMarker}
 `;
 }
 
+// Move Lunar Client stats 1px left while preserving the current vertical position.
+const horizontalAlignmentMarker = "/* Minecraft lunar horizontal alignment v30 */";
+if (!styles.includes(horizontalAlignmentMarker)) {
+  styles += `
+
+${horizontalAlignmentMarker}
+.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(2px,-1px)}
+@media(max-width:700px){.minecraft-info .minecraft-secondary-split .minecraft-client{transform:translate(2px,-1px)}}
+`;
+}
+
 fs.writeFileSync(path, source);
 fs.writeFileSync(stylesPath, styles);
 console.log("fix-minecraft-status: fine-tuned Minecraft card stat positioning and Bedwars stat size");
